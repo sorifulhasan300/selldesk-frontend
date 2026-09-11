@@ -162,15 +162,20 @@ src/
 import { apiClient } from "@/lib/api-client";
 import { Product, CreateProductDTO } from "../types/product.types";
 
-export const fetchProducts = async (): Promise<Product[]> => {
-  const { data } = await apiClient.get<Product[]>("/products");
+export const fetchProducts = async (storeId: string): Promise<Product[]> => {
+  const { data } = await apiClient.get<Product[]>("/products", {
+    headers: { "x-store-id": storeId },
+  });
   return data;
 };
 
 export const createProduct = async (
+  storeId: string,
   payload: CreateProductDTO,
 ): Promise<Product> => {
-  const { data } = await apiClient.post<Product>("/products", payload);
+  const { data } = await apiClient.post<Product>("/products", payload, {
+    headers: { "x-store-id": storeId },
+  });
   return data;
 };
 ```
@@ -182,20 +187,23 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchProducts, createProduct } from "../api/products.api";
 import { CreateProductDTO } from "../types/product.types";
 
-export const useProducts = () => {
+export const useProducts = (storeId: string) => {
   return useQuery({
-    queryKey: ["products"],
-    queryFn: fetchProducts,
+    queryKey: ["store", storeId, "products"],
+    queryFn: () => fetchProducts(storeId),
+    enabled: Boolean(storeId), // Never run query without valid tenant context
   });
 };
 
-export const useCreateProduct = () => {
+export const useCreateProduct = (storeId: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (payload: CreateProductDTO) => createProduct(payload),
+    mutationFn: (payload: CreateProductDTO) => createProduct(storeId, payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({
+        queryKey: ["store", storeId, "products"],
+      });
     },
   });
 };
@@ -288,3 +296,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 - ❌ Cross-importing between `(admin)`, `(dashboard)`, and `(storefront)` route folders.
 - ❌ Checking `role`/`permission` inline in a page instead of via `lib/permissions.ts` + guard components.
 - ❌ Putting a feature-specific API call in `services/` instead of `features/<name>/api/`.
+- ❌ Filtering tenant data client-side (`data.filter(i => i.storeId === currentStore.id)`) — ALWAYS enforce at database & API boundary!
+- ❌ Using unpartitioned TanStack Query keys (e.g., `['products']` instead of `['store', storeId, 'products']`).
+
+---
+
+## Companion Frontend Skills
+
+Refer to these specialized SellDesk frontend skills for in-depth execution guidelines:
+
+- **`multi-tenant-data-isolation`**: Strict server-side data isolation, `x-store-id` injection, and cache partitioning.
+- **`storefront-seo-performance`**: Dynamic metadata, OpenGraph, JSON-LD schemas, ISR/SSG, and `next/image` optimization.
+- **`storefront-cart-checkout-workflow`**: LocalStorage cart isolation, dynamic delivery charge calculation, coupons, and idempotent order submission.
+- **`storefront-dynamic-theming`**: Zero-FOUC server-side CSS variable injection, Tailwind v4 binding, and merchant white-labeling.
+- **`rbac-and-permission-gating`**: Capability-based `<Can do="..." />`, layout `RoleGuard`, and 401 token refresh queue.
+- **`form-and-validation-standard`**: React Hook Form + Zod v4, memoized `useFieldArray` variant rows, and NestJS error mapping.
+- **`testing-convention-frontend`**: Vitest and React Testing Library standards for feature-level tests, hooks, and schemas.
+- **`git-commit-pr-convention`**: Conventional Commits 1.0, SellDesk domain scopes, branch naming, and PR checklists.
