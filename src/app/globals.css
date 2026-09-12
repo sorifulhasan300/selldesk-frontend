@@ -52,9 +52,10 @@
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
 
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  /* Synchronized Font Family Tokens */
+  --font-sans: var(--font-inter), sans-serif;
+  --font-heading: var(--font-jakarta), sans-serif;
+  --font-bengali: var(--font-hind), sans-serif;
 }
 
 /*
@@ -201,9 +202,21 @@
     @apply border-border outline-ring/50;
   }
   body {
+    font-family: var(--font-inter), sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     @apply bg-background text-foreground antialiased selection:bg-secondary selection:text-secondary-foreground;
   }
   html {
     @apply font-sans;
+  }
+}
+
+@layer utilities {
+  .font-bengali {
+    font-family: var(--font-hind), sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
 }
