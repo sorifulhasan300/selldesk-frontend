@@ -1,0 +1,209 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@config "../../tailwind.config.ts";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  --color-store-primary: hsl(var(--store-primary, var(--primary)));
+  --color-store-primary-foreground: hsl(
+    var(--store-primary-foreground, var(--primary-foreground))
+  );
+  --color-store-bg: hsl(var(--store-bg, var(--background)));
+  --color-store-text: hsl(var(--store-text, var(--foreground)));
+  --color-store-border: hsl(var(--store-border, var(--border)));
+
+  --color-sidebar: hsl(var(--sidebar));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar-primary: hsl(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-accent: hsl(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-ring: hsl(var(--sidebar-ring));
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-sans);
+}
+
+/*
+ * ==========================================================================
+ * SELLDESK MULTI-TENANT DYNAMIC THEME OVERRIDE ARCHITECTURE
+ * ==========================================================================
+ *
+ * White-label storefronts can dynamically override brand tokens at runtime.
+ * Because all utility classes (e.g. `bg-primary`, `text-primary`, `border-primary`,
+ * `bg-store-primary`, `text-store-primary`) resolve to CSS variables, overriding
+ * them on a parent DOM node automatically cascades down the entire subtree with:
+ *  1. ZERO Flash of Unstyled Content (FOUC) when server-rendered.
+ *  2. ZERO client-side JavaScript execution overhead or context re-renders.
+ *  3. Full alpha transparency support (e.g., `bg-primary/50`, `border-primary/20`).
+ *
+ * USAGE PATTERN:
+ * In `src/app/(storefront)/layout.tsx`:
+ * ```tsx
+ * export default async function StorefrontLayout({ children }: LayoutProps) {
+ *   const tenant = await fetchStorefrontInit(host);
+ *   // Provide tenant HSL channels (e.g. "142 76% 36%")
+ *   const tenantStyles: React.CSSProperties = {
+ *     "--primary": tenant.primaryHsl,               // Overrides platform primary
+ *     "--primary-foreground": tenant.fgHsl,         // Contrast-safe text color
+ *     "--ring": tenant.primaryHsl,                  // Synchronizes focus states
+ *     "--store-primary": tenant.primaryHsl,         // White-label namespace alias
+ *     "--store-bg": tenant.bgHsl,
+ *     "--store-text": tenant.textHsl,
+ *   } as React.CSSProperties;
+ *
+ *   return (
+ *     <div id="storefront-root" style={tenantStyles}>
+ *       {children}
+ *     </div>
+ *   );
+ * }
+ * ```
+ * ==========================================================================
+ */
+
+:root {
+  /* Base Surfaces */
+  --background: 0 0% 100%;
+  --foreground: 224 71.4% 4.1%;
+
+  /* Card & Surface Containers */
+  --card: 0 0% 100%;
+  --card-foreground: 224 71.4% 4.1%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 224 71.4% 4.1%;
+
+  /* Primary Brand: #7C3AEC (262 83% 58%) */
+  --primary: 262 83% 58%;
+  --primary-foreground: 0 0% 100%;
+
+  /* Secondary Brand: #ECE9FE (250 91% 95%) with WCAG AAA contrast foreground */
+  --secondary: 250 91% 95%;
+  --secondary-foreground: 262 83% 38%;
+
+  /* Feedback & Muted States */
+  --muted: 220 14.3% 95.9%;
+  --muted-foreground: 220 8.9% 46.1%;
+  --accent: 250 91% 95%;
+  --accent-foreground: 262 83% 38%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+
+  /* Form & Boundary Controls */
+  --border: 220 13% 91%;
+  --input: 220 13% 91%;
+  --ring: 262 83% 58%;
+  --radius: 0.5rem;
+
+  /* Storefront Dynamic Fallbacks */
+  --store-primary: var(--primary);
+  --store-primary-foreground: var(--primary-foreground);
+  --store-bg: var(--background);
+  --store-text: var(--foreground);
+  --store-border: var(--border);
+
+  /* Sidebar Tokens */
+  --sidebar: 0 0% 98%;
+  --sidebar-foreground: 240 5.3% 26.1%;
+  --sidebar-primary: 262 83% 58%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 250 91% 95%;
+  --sidebar-accent-foreground: 262 83% 38%;
+  --sidebar-border: 220 13% 91%;
+  --sidebar-ring: 262 83% 58%;
+}
+
+.dark {
+  /* Base Surfaces */
+  --background: 224 71.4% 4.1%;
+  --foreground: 210 40% 98%;
+
+  /* Card & Surface Containers */
+  --card: 224 71.4% 5.5%;
+  --card-foreground: 210 40% 98%;
+  --popover: 224 71.4% 5.5%;
+  --popover-foreground: 210 40% 98%;
+
+  /* Primary Brand (Lighter purple for dark surface legibility) */
+  --primary: 262 83% 62%;
+  --primary-foreground: 0 0% 100%;
+
+  /* Secondary Brand (Muted dark violet container with luminous lavender text) */
+  --secondary: 263 30% 18%;
+  --secondary-foreground: 250 91% 95%;
+
+  /* Feedback & Muted States */
+  --muted: 215 27.9% 16.9%;
+  --muted-foreground: 217.9 10.6% 64.9%;
+  --accent: 263 30% 18%;
+  --accent-foreground: 250 91% 95%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 210 40% 98%;
+
+  /* Form & Boundary Controls */
+  --border: 215 27.9% 16.9%;
+  --input: 215 27.9% 16.9%;
+  --ring: 262 83% 65%;
+
+  /* Storefront Dynamic Fallbacks */
+  --store-primary: var(--primary);
+  --store-primary-foreground: var(--primary-foreground);
+  --store-bg: var(--background);
+  --store-text: var(--foreground);
+  --store-border: var(--border);
+
+  /* Sidebar Tokens */
+  --sidebar: 224 71.4% 5.5%;
+  --sidebar-foreground: 240 4.8% 95.9%;
+  --sidebar-primary: 262 83% 62%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 263 30% 18%;
+  --sidebar-accent-foreground: 250 91% 95%;
+  --sidebar-border: 215 27.9% 16.9%;
+  --sidebar-ring: 262 83% 65%;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground antialiased selection:bg-secondary selection:text-secondary-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}
