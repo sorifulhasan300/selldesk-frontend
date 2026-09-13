@@ -157,7 +157,11 @@ export function RegisterForm() {
         </label>
         <div className="relative flex rounded-xl border border-border bg-background shadow-2xs transition-all duration-200 focus-within:border-transparent focus-within:ring-2 focus-within:ring-ring">
           <span className="flex items-center gap-1 rounded-l-xl border-r border-border bg-muted/40 px-3 text-xs font-medium text-muted-foreground select-none">
-            <span className="text-sm leading-none" role="img" aria-label="Bangladesh Flag">
+            <span
+              className="text-sm leading-none"
+              role="img"
+              aria-label="Bangladesh Flag"
+            >
               🇧🇩
             </span>
             <span className="font-mono text-xs">+88</span>

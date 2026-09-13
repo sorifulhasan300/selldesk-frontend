@@ -83,8 +83,7 @@ export async function registerUser(
 
       return {
         session,
-        message:
-          responseData.message || "রেজিস্ট্রেশন সফলভাবে সম্পন্ন হয়েছে!",
+        message: responseData.message || "রেজিস্ট্রেশন সফলভাবে সম্পন্ন হয়েছে!",
       };
     }
 

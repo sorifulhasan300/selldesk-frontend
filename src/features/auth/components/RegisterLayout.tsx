@@ -2,12 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import {
-  ShoppingBag,
-  Sparkles,
-  CheckCircle2,
-  Star,
-} from "lucide-react";
+import { ShoppingBag, Sparkles, CheckCircle2, Star } from "lucide-react";
 
 interface RegisterLayoutProps {
   children: React.ReactNode;
@@ -54,7 +49,9 @@ export function RegisterLayout({ children }: RegisterLayoutProps) {
               {/* Trust Badge Pill */}
               <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-secondary/60 px-3.5 py-1.5 text-xs font-semibold text-primary backdrop-blur-xs">
                 <Sparkles className="size-3.5" />
-                <span>১০ দিনের ফ্রি ট্রায়াল - কোনো ক্রেডিট কার্ড লাগবে না</span>
+                <span>
+                  ১০ দিনের ফ্রি ট্রায়াল - কোনো ক্রেডিট কার্ড লাগবে না
+                </span>
               </div>
 
               <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl xl:text-5xl leading-tight">
@@ -65,7 +62,8 @@ export function RegisterLayout({ children }: RegisterLayoutProps) {
               </h1>
 
               <p className="max-w-xl text-base text-muted-foreground leading-relaxed">
-                কোনো কোডিং বা টেকনিক্যাল জ্ঞান ছাড়াই আপনার ব্যবসার জন্য একটি প্রফেশনাল ই-কমার্স ওয়েবসাইট গড়ে তুলুন।
+                কোনো কোডিং বা টেকনিক্যাল জ্ঞান ছাড়াই আপনার ব্যবসার জন্য একটি
+                প্রফেশনাল ই-কমার্স ওয়েবসাইট গড়ে তুলুন।
               </p>
 
               {/* High-Converting Feature Highlights */}
@@ -74,19 +72,25 @@ export function RegisterLayout({ children }: RegisterLayoutProps) {
                   <div className="flex size-6 items-center justify-center rounded-full bg-primary/10 text-primary">
                     <CheckCircle2 className="size-4" />
                   </div>
-                  <span>বিকাশ, নগদ ও কার্ডে তাৎক্ষণিক পেমেন্ট গেটওয়ে ইন্টিগ্রেশন</span>
+                  <span>
+                    বিকাশ, নগদ ও কার্ডে তাৎক্ষণিক পেমেন্ট গেটওয়ে ইন্টিগ্রেশন
+                  </span>
                 </div>
                 <div className="flex items-center gap-3 text-sm text-foreground">
                   <div className="flex size-6 items-center justify-center rounded-full bg-primary/10 text-primary">
                     <CheckCircle2 className="size-4" />
                   </div>
-                  <span>রেডেক্স, স্টেডফাস্ট ও পেপারফ্লাই কুরিয়ার অটো-বুকিং সুবিধা</span>
+                  <span>
+                    রেডেক্স, স্টেডফাস্ট ও পেপারফ্লাই কুরিয়ার অটো-বুকিং সুবিধা
+                  </span>
                 </div>
                 <div className="flex items-center gap-3 text-sm text-foreground">
                   <div className="flex size-6 items-center justify-center rounded-full bg-primary/10 text-primary">
                     <CheckCircle2 className="size-4" />
                   </div>
-                  <span>ফাস্ট সুপার-অপ্টিমাইজড স্টোরফ্রন্ট এবং ফ্রি সাবডোমেন</span>
+                  <span>
+                    ফাস্ট সুপার-অপ্টিমাইজড স্টোরফ্রন্ট এবং ফ্রি সাবডোমেন
+                  </span>
                 </div>
               </div>
             </div>
@@ -112,7 +116,8 @@ export function RegisterLayout({ children }: RegisterLayoutProps) {
                     ))}
                   </div>
                   <p className="text-xs font-medium text-foreground">
-                    <strong className="font-bold">৫,০০০+</strong> সফল উদ্যোক্তার আস্থার প্রতীক
+                    <strong className="font-bold">৫,০০০+</strong> সফল উদ্যোক্তার
+                    আস্থার প্রতীক
                   </p>
                 </div>
               </div>
@@ -144,14 +149,17 @@ export function RegisterLayout({ children }: RegisterLayoutProps) {
                   {/* Trust Badge Banner */}
                   <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-secondary/80 px-3 py-1 text-[11px] font-semibold text-primary">
                     <Sparkles className="size-3" />
-                    <span>১০ দিনের ফ্রি ট্রায়াল - কোনো ক্রেডিট কার্ড লাগবে না</span>
+                    <span>
+                      ১০ দিনের ফ্রি ট্রায়াল - কোনো ক্রেডিট কার্ড লাগবে না
+                    </span>
                   </div>
 
                   <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground pt-1">
                     নতুন অ্যাকাউন্ট তৈরি করুন
                   </h2>
                   <p className="text-xs sm:text-sm text-muted-foreground">
-                    আপনার প্রাথমিক তথ্য দিন এবং মাত্র কয়েক সেকেন্ডে স্টোর শুরু করুন।
+                    আপনার প্রাথমিক তথ্য দিন এবং মাত্র কয়েক সেকেন্ডে স্টোর শুরু
+                    করুন।
                   </p>
                 </div>
 
@@ -174,7 +182,9 @@ export function RegisterLayout({ children }: RegisterLayoutProps) {
 
               {/* Bottom Copyright and Security Assurance */}
               <div className="mt-6 text-center text-xs text-muted-foreground/80">
-                <p>© {new Date().getFullYear()} SellDesk. সর্বস্বত্ব সংরক্ষিত।</p>
+                <p>
+                  © {new Date().getFullYear()} SellDesk. সর্বস্বত্ব সংরক্ষিত।
+                </p>
               </div>
             </div>
           </div>

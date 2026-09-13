@@ -21,20 +21,15 @@ export const registerSchema = z.object({
     .toLowerCase()
     .min(1, { message: "সঠিক ইমেইল এড্রেস দিন" })
     .email({ message: "সঠিক ইমেইল এড্রেস দিন" }),
-  phone: z
-    .string()
-    .trim()
-    .regex(BD_PHONE_REGEX, {
-      message: "সঠিক বাংলাদেশী মোবাইল নম্বর দিন",
-    }),
+  phone: z.string().trim().regex(BD_PHONE_REGEX, {
+    message: "সঠিক বাংলাদেশী মোবাইল নম্বর দিন",
+  }),
   password: z
     .string()
     .min(8, { message: "পাসওয়ার্ড অন্তত ৮ অক্ষরের হতে হবে" }),
-  agreeTerms: z
-    .boolean()
-    .refine((val) => val === true, {
-      message: "শর্তাবলী গ্রহণ করা আবশ্যক",
-    }),
+  agreeTerms: z.boolean().refine((val) => val === true, {
+    message: "শর্তাবলী গ্রহণ করা আবশ্যক",
+  }),
 });
 
 export type RegisterFormData = z.infer<typeof registerSchema>;
