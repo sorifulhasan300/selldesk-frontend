@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Hind_Siliguri } from "next/font/google";
-import { Toaster } from "sonner";
 import { cn } from "@/lib/utils";
 
 const hindSiliguri = Hind_Siliguri({
@@ -28,7 +27,6 @@ export default function AuthLayout({
         hindSiliguri.variable,
       )}
     >
-      <Toaster richColors position="top-center" />
       {children}
     </div>
   );

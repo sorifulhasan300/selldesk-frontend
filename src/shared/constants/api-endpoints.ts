@@ -5,21 +5,17 @@
 
 export const AUTH = {
   /**
-   * Register/signup a new user account
-   * POST /api/v1/auth/signup
+   * Register/signup a new user account (Primary: /stores/auth/signup, Fallback: /auth/signup)
    */
-  REGISTER: "/auth/signup",
+  REGISTER: "/stores/auth/signup",
+  SIGNUP: "/stores/auth/signup",
+  FALLBACK_SIGNUP: "/auth/signup",
 
   /**
-   * Alias for REGISTER
+   * User login with credentials (Primary: /stores/auth/login, Fallback: /auth/login)
    */
-  SIGNUP: "/auth/signup",
-
-  /**
-   * User login with email/phone & password
-   * POST /api/v1/auth/login
-   */
-  LOGIN: "/auth/login",
+  LOGIN: "/stores/auth/login",
+  FALLBACK_LOGIN: "/auth/login",
 
   /**
    * Revoke active refresh token & session
@@ -96,12 +92,42 @@ export const TENANTS = {
   DELETE: (storeId: string) => `/stores/${storeId}`,
 } as const;
 
+export const UPLOAD = {
+  /**
+   * Upload single image file to Cloudinary tenant folder
+   * POST /api/v1/upload/single?folder=:folder
+   */
+  SINGLE: (folder?: string) =>
+    folder
+      ? `/upload/single?folder=${encodeURIComponent(folder)}`
+      : "/upload/single",
+
+  /**
+   * Upload public image (e.g. user avatar during registration)
+   * POST /api/v1/upload/public?folder=:folder
+   */
+  PUBLIC: (folder?: string) =>
+    folder
+      ? `/upload/public?folder=${encodeURIComponent(folder)}`
+      : "/upload/public",
+
+  /**
+   * Upload multiple image files
+   * POST /api/v1/upload/multiple?folder=:folder
+   */
+  MULTIPLE: (folder?: string) =>
+    folder
+      ? `/upload/multiple?folder=${encodeURIComponent(folder)}`
+      : "/upload/multiple",
+} as const;
+
 /**
  * Combined API Endpoints map
  */
 export const API_ENDPOINTS = {
   AUTH,
   TENANTS,
+  UPLOAD,
 } as const;
 
 export default API_ENDPOINTS;

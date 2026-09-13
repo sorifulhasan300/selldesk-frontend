@@ -36,7 +36,7 @@ export function ToastProvider({ children, ...props }: ToastProviderProps) {
             info: "group-[.toaster]:text-primary group-[.toaster]:border-primary/20",
           },
         }}
-        position="top-right"
+        position="top-center"
         richColors
         closeButton
         duration={4000}

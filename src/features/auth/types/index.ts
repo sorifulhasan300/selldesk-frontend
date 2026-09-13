@@ -27,3 +27,31 @@ export interface RegisterResponse {
   user: AuthUser;
   tokens?: AuthTokens;
 }
+
+/**
+ * Uploaded asset metadata returned from Cloudinary upload endpoints
+ */
+export interface UploadedAsset {
+  url: string;
+  publicId: string;
+  format: string;
+  bytes: number;
+}
+
+/**
+ * Standard Result contract for Next.js Server Actions
+ */
+export interface AuthActionResult<T = unknown> {
+  success: boolean;
+  message: string;
+  data?: T;
+  user?: AuthUser;
+  token?: string;
+  tokens?: AuthTokens;
+  hasStore?: boolean;
+  redirectTo?: string;
+  requiresVerification?: boolean;
+  email?: string;
+  error?: string;
+  errors?: Record<string, string[]>;
+}

@@ -1,4 +1,5 @@
 export * from "./schemas/onboardingSchema";
+export * from "./actions/storeActions";
 export * from "./hooks/useOnboardingStorage";
 export * from "./components/OnboardingWizard";
 export * from "./components/OnboardingHeader";

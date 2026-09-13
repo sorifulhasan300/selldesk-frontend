@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { toast, Toaster } from "sonner";
+import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import {
   Sparkles,
@@ -13,7 +13,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import {
-  OnboardingFormData,
+  type OnboardingFormData,
   onboardingFormSchema,
   defaultOnboardingValues,
 } from "../schemas/onboardingSchema";
@@ -21,6 +21,8 @@ import {
   useOnboardingStore,
   useIsHydrated,
 } from "../hooks/useOnboardingStorage";
+import { createStoreAction } from "../actions/storeActions";
+import { useTenantStore } from "@/features/tenant/stores/useTenantStore";
 import { OnboardingHeader } from "./OnboardingHeader";
 import { Step1StoreIdentity } from "./Step1StoreIdentity";
 import { Step2BusinessInsights } from "./Step2BusinessInsights";
@@ -49,7 +51,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
     mode: "onChange",
   });
 
-  // Re-sync form with persisted draft data when hydrated
+  // Re-sync form with persisted draft data when hydrated from localStorage
   useEffect(() => {
     if (isHydrated) {
       form.reset(formData);
@@ -57,6 +59,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isHydrated]);
 
+  // Synchronize form draft changes to reactive storage
   const syncDraftToStore = () => {
     setFormData(form.getValues());
   };
@@ -96,7 +99,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
     }
   };
 
-  // Final submission (handles skip or submit)
+  // Final submission executing Next.js 15 createStoreAction
   const handleFinalSubmit = async (isSkipping: boolean = false) => {
     try {
       setIsSubmitting(true);
@@ -108,7 +111,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
         form.setValue("bannerPublicId", "");
       }
 
-      // Validate all required steps
+      // Validate all required steps prior to action dispatch
       const isStep1Valid = await form.trigger([
         "storeName",
         "subDomain",
@@ -140,15 +143,35 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
       if (onComplete) {
         await onComplete(allData);
       } else {
-        // Industry-standard simulated store generation delay
-        await new Promise((resolve) => setTimeout(resolve, 1500));
+        // Dispatch createStoreAction to backend
+        const result = await createStoreAction(allData);
+
+        if (!result.success) {
+          toast.error("স্টোর তৈরি করতে সমস্যা হয়েছে", {
+            description:
+              result.error ||
+              result.message ||
+              "স্টোর তৈরি প্রক্রিয়া সম্পন্ন করা সম্ভব হয়নি। আবার চেষ্টা করুন।",
+          });
+          return;
+        }
+
+        // Synchronize active tenant in client Zustand store
+        if (result.store) {
+          useTenantStore.getState().setTenant(result.store);
+        }
       }
 
-      // Success cleanup & presentation
+      // Draft Cleanup & Handoff: clear local persistence before handoff to dashboard
       resetOnboarding();
       setCreatedStoreData(allData);
       setIsSuccess(true);
-      toast.success("অভিনন্দন! আপনার স্টোরটি সফলভাবে প্রস্তুত হয়েছে 🎉");
+      toast.success("অভিনন্দন! আপনার স্টোরটি সফলভাবে প্রস্তুত হয়েছে 🎉", {
+        description: "আপনাকে ড্যাশবোর্ডে নিয়ে যাওয়া হচ্ছে...",
+      });
+
+      // Immediate redirect to dashboard
+      router.push("/dashboard");
     } catch (error) {
       console.error("Onboarding submission failed:", error);
       toast.error("দুঃখিত, স্টোর তৈরি করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।");
@@ -183,14 +206,12 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground selection:bg-secondary selection:text-secondary-foreground">
-      <Toaster position="top-center" richColors />
-
       {/* Floating Minimal Header with SellDesk Logo and Progress Bar */}
       <OnboardingHeader currentStep={currentStep} />
 
       {/* Main Centered Content */}
       <main className="relative flex flex-1 items-center justify-center px-4 py-8 sm:py-12">
-        {/* Subtle Ambient Background Lighting */}
+        {/* Ambient Background Lighting */}
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 -z-10 flex items-center justify-center overflow-hidden opacity-30"
@@ -221,7 +242,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
               </p>
             </div>
 
-            {/* Store Preview Pill */}
+            {/* Store Preview Link */}
             <div className="rounded-xl border border-border/80 bg-secondary/40 p-4 text-left">
               <span className="text-xs text-muted-foreground font-medium">
                 আপনার স্টোর লিঙ্ক:
@@ -245,7 +266,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                 type="button"
                 onClick={handleStartOver}
                 variant="outline"
-                className="rounded-xl font-bold"
+                className="rounded-xl font-bold cursor-pointer"
               >
                 <RotateCcw className="size-4 mr-1.5" />
                 <span>নতুন স্টোর খুলুন</span>
@@ -253,7 +274,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
               <Button
                 type="button"
                 onClick={() => router.push("/dashboard")}
-                className="flex-1 rounded-xl font-bold shadow-md"
+                className="flex-1 rounded-xl font-bold shadow-md cursor-pointer"
               >
                 <span>ড্যাশবোর্ডে প্রবেশ করুন</span>
                 <ArrowRight className="size-4 ml-1.5" />
