@@ -6,7 +6,10 @@ import {
 // In-memory overrides (e.g. for SSR, unit tests, or dynamic switching)
 let inMemoryAuthToken: string | null = null;
 let inMemoryTenantSubdomain: string | null = null;
+let inMemoryStoreId: string | null = null;
 
+export const STORE_COOKIE_KEY = "selldesk_store_id";
+export const STORE_STORAGE_KEY = "selldesk_store_id";
 export const TENANT_COOKIE_KEY = "selldesk_tenant_subdomain";
 export const TENANT_STORAGE_KEY = "selldesk_tenant_subdomain";
 
@@ -26,17 +29,70 @@ const RESERVED_SUBDOMAINS = new Set([
 ]);
 
 /**
- * Programmatically set or clear the auth token in-memory
+ * Programmatically set or clear the auth token in-memory and cookie
  */
-export function setClientAuthToken(token: string | null): void {
+export function setClientAuthToken(token: string | null, persist = true): void {
   inMemoryAuthToken = token;
+
+  if (typeof window !== "undefined" && persist) {
+    try {
+      if (token) {
+        // 7 days expiration for access token cookie
+        document.cookie = `${AUTH_TOKEN_COOKIE_KEY}=${encodeURIComponent(token)}; path=/; max-age=604800; SameSite=Lax`;
+      } else {
+        document.cookie = `${AUTH_TOKEN_COOKIE_KEY}=; path=/; max-age=0; SameSite=Lax`;
+      }
+    } catch {
+      // Ignore sandbox access errors
+    }
+  }
 }
 
 /**
- * Programmatically set or clear the tenant subdomain in-memory
+ * Programmatically set or clear the store ID in-memory, localStorage, and cookie (primary backend identifier)
  */
-export function setClientTenantSubdomain(subdomain: string | null): void {
+export function setClientStoreId(storeId: string | null, persist = true): void {
+  inMemoryStoreId = storeId ? storeId.trim() : null;
+
+  if (typeof window !== "undefined" && persist) {
+    try {
+      if (inMemoryStoreId) {
+        localStorage.setItem(STORE_STORAGE_KEY, inMemoryStoreId);
+        // 30 days expiration for store context cookie
+        document.cookie = `${STORE_COOKIE_KEY}=${encodeURIComponent(inMemoryStoreId)}; path=/; max-age=2592000; SameSite=Lax`;
+      } else {
+        localStorage.removeItem(STORE_STORAGE_KEY);
+        document.cookie = `${STORE_COOKIE_KEY}=; path=/; max-age=0; SameSite=Lax`;
+      }
+    } catch {
+      // Ignore sandbox access errors
+    }
+  }
+}
+
+/**
+ * Programmatically set or clear the tenant subdomain in-memory, localStorage, and cookie
+ */
+export function setClientTenantSubdomain(
+  subdomain: string | null,
+  persist = true,
+): void {
   inMemoryTenantSubdomain = subdomain ? subdomain.trim().toLowerCase() : null;
+
+  if (typeof window !== "undefined" && persist) {
+    try {
+      if (inMemoryTenantSubdomain) {
+        localStorage.setItem(TENANT_STORAGE_KEY, inMemoryTenantSubdomain);
+        // 30 days expiration for tenant cookie
+        document.cookie = `${TENANT_COOKIE_KEY}=${encodeURIComponent(inMemoryTenantSubdomain)}; path=/; max-age=2592000; SameSite=Lax`;
+      } else {
+        localStorage.removeItem(TENANT_STORAGE_KEY);
+        document.cookie = `${TENANT_COOKIE_KEY}=; path=/; max-age=0; SameSite=Lax`;
+      }
+    } catch {
+      // Ignore sandbox access errors
+    }
+  }
 }
 
 /**
@@ -170,4 +226,45 @@ export function getTenantSubdomain(): string | null {
   }
 
   return null;
+}
+
+/**
+ * Resolves active store ID (primary backend identifier) from:
+ * 1. In-memory override
+ * 2. Cookie (`selldesk_store_id`, `store_id`, `x-store-id`)
+ * 3. LocalStorage (`selldesk_store_id`, `store_id`)
+ * 4. Tenant subdomain fallback (via hostname / cookie)
+ */
+export function getStoreId(): string | null {
+  if (inMemoryStoreId) {
+    return inMemoryStoreId;
+  }
+
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    // 1. Cookie lookup
+    const storeCookie =
+      getCookie(STORE_COOKIE_KEY) ||
+      getCookie("store_id") ||
+      getCookie("x-store-id");
+    if (storeCookie && storeCookie.trim().length > 0) {
+      return storeCookie.trim();
+    }
+
+    // 2. LocalStorage lookup
+    const storedId =
+      localStorage.getItem(STORE_STORAGE_KEY) ||
+      localStorage.getItem("store_id");
+    if (storedId && storedId.trim().length > 0) {
+      return storedId.trim();
+    }
+  } catch {
+    // Fail silently in case of security / sandbox access restrictions
+  }
+
+  // 3. Fallback to resolved tenant subdomain
+  return getTenantSubdomain();
 }

@@ -164,6 +164,10 @@ export class ApiError extends Error {
     Object.setPrototypeOf(this, ApiError.prototype);
   }
 
+  get status(): number {
+    return this.statusCode;
+  }
+
   get isBadRequest(): boolean {
     return this.statusCode === 400;
   }
@@ -199,7 +203,10 @@ export class ApiError extends Error {
   }
 
   get isNetworkError(): boolean {
-    return this.statusCode === 0 || !this.rawError?.response;
+    return (
+      this.statusCode === 0 ||
+      (Boolean(this.rawError) && !this.rawError?.response)
+    );
   }
 }
 
@@ -250,12 +257,25 @@ export function parseApiError(error: unknown): ApiError {
   }
 
   if (error instanceof Error) {
-    const bengaliMessage = formatBengaliErrorMessage(undefined, error.message);
+    const errorWithStatus = error as Error & {
+      statusCode?: number;
+      status?: number;
+      errors?: Record<string, string[]>;
+      code?: string;
+    };
+    const statusCode =
+      errorWithStatus.statusCode || errorWithStatus.status || 0;
+    const bengaliMessage = formatBengaliErrorMessage(
+      statusCode || undefined,
+      error.message,
+    );
     return new ApiError({
-      statusCode: 0,
+      statusCode,
       message: error.message,
       bengaliMessage,
       originalMessage: error.message,
+      code: errorWithStatus.code,
+      errors: errorWithStatus.errors,
     });
   }
 

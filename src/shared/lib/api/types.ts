@@ -44,6 +44,11 @@ export interface ApiRequestConfig extends AxiosRequestConfig {
   skipAuth?: boolean;
 
   /**
+   * Explicitly specify or override store ID (primary header: X-Store-Id)
+   */
+  storeId?: string;
+
+  /**
    * Explicitly specify or override tenant subdomain for multi-tenant routing
    */
   tenantSubdomain?: string;
@@ -102,5 +107,6 @@ export interface ApiClientInstance {
   ): Promise<T>;
   request<T = unknown>(config: ApiRequestConfig): Promise<T>;
   setAuthToken(token: string | null): void;
+  setStoreId(storeId: string | null): void;
   setTenantSubdomain(subdomain: string | null): void;
 }

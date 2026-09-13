@@ -13,8 +13,10 @@ import {
 } from "./errors";
 import {
   getAuthToken,
+  getStoreId,
   getTenantSubdomain,
   setClientAuthToken,
+  setClientStoreId,
   setClientTenantSubdomain,
 } from "./token";
 import type { ApiClientInstance, ApiRequestConfig } from "./types";
@@ -52,7 +54,12 @@ axiosInstance.interceptors.request.use(
     const customConfig = config as InternalAxiosRequestConfig &
       ApiRequestConfig;
 
-    // 1. Bearer Token resolution
+    // 1. If sending FormData, delete Content-Type to let browser/Axios calculate the boundary
+    if (typeof FormData !== "undefined" && config.data instanceof FormData) {
+      config.headers.delete("Content-Type");
+    }
+
+    // 2. Bearer Token resolution
     if (!customConfig.skipAuth) {
       const token = getAuthToken();
       if (token) {
@@ -60,14 +67,23 @@ axiosInstance.interceptors.request.use(
       }
     }
 
-    // 2. Tenant Subdomain resolution
-    const tenantSubdomain =
-      customConfig.tenantSubdomain || getTenantSubdomain();
+    // 2. Store / Tenant context resolution (Primary: X-Store-Id for NestJS backend)
+    const storeId =
+      customConfig.storeId ||
+      customConfig.tenantSubdomain ||
+      getStoreId() ||
+      getTenantSubdomain();
 
-    if (tenantSubdomain) {
-      config.headers.set("X-Tenant-Subdomain", tenantSubdomain);
-      config.headers.set("X-Tenant-ID", tenantSubdomain);
-      config.headers.set("X-Store-Subdomain", tenantSubdomain);
+    if (storeId) {
+      // Primary backend header required by NestJS controllers (Orders, Payments, CMS, etc.)
+      config.headers.set("X-Store-Id", storeId);
+      config.headers.set("x-store-id", storeId);
+      config.headers.set("store-id", storeId);
+
+      // Multi-tenant subdomain headers for storefront domain routing
+      config.headers.set("X-Tenant-Subdomain", storeId);
+      config.headers.set("X-Tenant-ID", storeId);
+      config.headers.set("X-Store-Subdomain", storeId);
     }
 
     return config;
@@ -194,12 +210,12 @@ export const apiClient: ApiClientInstance & {
     formData: FormData,
     config?: ApiRequestConfig,
   ): Promise<T> {
+    const uploadHeaders = { ...(config?.headers as Record<string, string>) };
+    delete uploadHeaders["Content-Type"];
+
     const uploadConfig: ApiRequestConfig = {
       ...config,
-      headers: {
-        ...config?.headers,
-        "Content-Type": "multipart/form-data",
-      },
+      headers: uploadHeaders,
     };
     return (await axiosInstance.post(
       url,
@@ -223,6 +239,13 @@ export const apiClient: ApiClientInstance & {
   },
 
   /**
+   * Programmatically set store ID (primary backend identifier)
+   */
+  setStoreId(storeId: string | null): void {
+    setClientStoreId(storeId);
+  },
+
+  /**
    * Programmatically set tenant subdomain
    */
   setTenantSubdomain(subdomain: string | null): void {
@@ -230,14 +253,17 @@ export const apiClient: ApiClientInstance & {
   },
 };
 
-// Re-export core error utilities directly from client module
+// Re-export core error and context utilities directly from client module
 export {
   ApiError,
   getApiErrorMessage,
   isApiError,
   formatBengaliErrorMessage,
   setClientAuthToken,
+  setClientStoreId,
   setClientTenantSubdomain,
+  getStoreId,
+  getTenantSubdomain,
 };
 
 export default apiClient;
