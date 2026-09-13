@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Menu, X, ShoppingBag } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { env } from "@/config/env";
 
 const NAV_LINKS = [
   { label: "ফিচার", href: "#features" },
@@ -23,7 +24,6 @@ export function Navbar() {
       document.body.style.overflow = "";
     };
   }, [isOpen]);
-
   return (
     <>
       <header className="sticky top-0 z-40 w-full border-b border-border/80 bg-background/90 backdrop-blur-md font-bengali">
