@@ -16,7 +16,7 @@ interface LoginLayoutProps {
 
 export function LoginLayout({ children }: LoginLayoutProps) {
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-background text-foreground font-bengali">
+    <div className="relative min-h-screen w-full overflow-hidden bg-background text-foreground">
       {/* Background Decorative Ambient Glows */}
       <div
         className="pointer-events-none absolute -top-40 -left-40 size-[500px] rounded-full bg-primary/10 blur-3xl"
@@ -55,19 +55,20 @@ export function LoginLayout({ children }: LoginLayoutProps) {
               {/* Trust Badge Pill */}
               <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-secondary/60 px-3.5 py-1.5 text-xs font-semibold text-primary backdrop-blur-xs">
                 <Sparkles className="size-3.5" />
-                <span>নিরাপদ ও আধুনিক ই-কমার্স প্ল্যাটফর্ম</span>
+                <span>Secure & Modern E-Commerce Platform</span>
               </div>
 
               <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl xl:text-5xl leading-tight">
-                আপনার অনলাইন স্টোরে{" "}
+                Welcome back to{" "}
                 <span className="text-primary underline decoration-primary/30 decoration-wavy underline-offset-8">
-                  স্বাগতম
+                  SellDesk
                 </span>
               </h1>
 
               <p className="max-w-xl text-base text-muted-foreground leading-relaxed">
-                SellDesk অ্যাডমিন প্যানেলে লগইন করে আপনার সমস্ত সেলস, অর্ডার,
-                কুরিয়ার ও ইনভেন্টরি সহজে এবং দ্রুত এক জায়গা থেকে পরিচালনা করুন।
+                Log in to your SellDesk merchant portal to seamlessly manage
+                sales, orders, courier deliveries, and inventory from one
+                unified workspace.
               </p>
 
               {/* High-Converting Feature Highlights */}
@@ -77,7 +78,7 @@ export function LoginLayout({ children }: LoginLayoutProps) {
                     <CheckCircle2 className="size-4" />
                   </div>
                   <span>
-                    এক ক্লিকে অর্ডার প্রসেসিং ও অটোমেটেড ইনভয়েস জেনারেশন
+                    One-click order processing & automated invoice generation
                   </span>
                 </div>
                 <div className="flex items-center gap-3 text-sm text-foreground">
@@ -85,7 +86,8 @@ export function LoginLayout({ children }: LoginLayoutProps) {
                     <CheckCircle2 className="size-4" />
                   </div>
                   <span>
-                    রেডেক্স, স্টেডফাস্ট ও পেপারফ্লাই কুরিয়ার অটো-বুকিং সুবিধা
+                    Automated courier dispatch with RedX, Steadfast, and
+                    Paperfly
                   </span>
                 </div>
                 <div className="flex items-center gap-3 text-sm text-foreground">
@@ -93,7 +95,8 @@ export function LoginLayout({ children }: LoginLayoutProps) {
                     <CheckCircle2 className="size-4" />
                   </div>
                   <span>
-                    রিয়েল-টাইম সেলস অ্যানালিটিক্স ও পেমেন্ট রিকনসিলিয়েশন
+                    Real-time sales analytics and automated payment
+                    reconciliation
                   </span>
                 </div>
               </div>
@@ -104,13 +107,13 @@ export function LoginLayout({ children }: LoginLayoutProps) {
               <div className="flex items-center gap-4">
                 <div className="flex -space-x-2 overflow-hidden">
                   <div className="inline-flex size-9 items-center justify-center rounded-full bg-primary/20 text-xs font-bold text-primary border-2 border-background">
-                    রফিক
+                    RJ
                   </div>
                   <div className="inline-flex size-9 items-center justify-center rounded-full bg-secondary text-xs font-bold text-foreground border-2 border-background">
-                    তাসনিম
+                    TC
                   </div>
                   <div className="inline-flex size-9 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground border-2 border-background">
-                    আহমেদ
+                    AK
                   </div>
                 </div>
                 <div className="space-y-0.5">
@@ -120,8 +123,8 @@ export function LoginLayout({ children }: LoginLayoutProps) {
                     ))}
                   </div>
                   <p className="text-xs font-medium text-foreground">
-                    <strong className="font-bold">৫,০০০+</strong> সফল উদ্যোক্তার
-                    আস্থার প্রতীক
+                    Trusted by <strong className="font-bold">5,000+</strong>{" "}
+                    ambitious merchants
                   </p>
                 </div>
               </div>
@@ -153,15 +156,15 @@ export function LoginLayout({ children }: LoginLayoutProps) {
                   {/* Trust Badge Banner */}
                   <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-secondary/80 px-3 py-1 text-[11px] font-semibold text-primary">
                     <ShieldCheck className="size-3" />
-                    <span>নিরাপদ লগইন পোর্টাল</span>
+                    <span>Secure Merchant Portal</span>
                   </div>
 
                   <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground pt-1">
-                    অ্যাকাউন্টে লগইন করুন
+                    Sign in to your account
                   </h2>
                   <p className="text-xs sm:text-sm text-muted-foreground">
-                    আপনার ইমেইল বা মোবাইল নম্বর এবং পাসওয়ার্ড দিয়ে ড্যাশবোর্ডে
-                    প্রবেশ করুন।
+                    Enter your email or phone number and password to access your
+                    dashboard.
                   </p>
                 </div>
 
@@ -171,12 +174,12 @@ export function LoginLayout({ children }: LoginLayoutProps) {
                 {/* Bottom Redirection Link */}
                 <div className="mt-6 border-t border-border/60 pt-4 text-center">
                   <p className="text-xs text-muted-foreground">
-                    SellDesk-এ এখনও অ্যাকাউন্ট নেই?{" "}
+                    Don&apos;t have an account?{" "}
                     <Link
                       href="/register"
                       className="font-semibold text-primary hover:underline transition-colors"
                     >
-                      নতুন অ্যাকাউন্ট খুলুন 🚀
+                      Sign Up 🚀
                     </Link>
                   </p>
                 </div>
@@ -185,7 +188,7 @@ export function LoginLayout({ children }: LoginLayoutProps) {
               {/* Bottom Copyright and Security Assurance */}
               <div className="mt-6 text-center text-xs text-muted-foreground/80">
                 <p>
-                  © {new Date().getFullYear()} SellDesk. সর্বস্বত্ব সংরক্ষিত।
+                  © {new Date().getFullYear()} SellDesk. All rights reserved.
                 </p>
               </div>
             </div>

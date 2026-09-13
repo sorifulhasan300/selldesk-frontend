@@ -270,7 +270,10 @@ function buildTargetUrl(
 }
 
 /**
- * Dynamically resolves the active Bearer Auth Token from Next.js 15 server context
+ * Dynamically resolves the active Bearer Auth Token from Next.js 15 server context:
+ * 1. Explicit options.token (if provided)
+ * 2. Primary HttpOnly cookie: 'auth_token'
+ * 3. Fallback cookies: 'selldesk_access_token', 'access_token', 'token'
  */
 async function resolveAuthToken(
   options?: ServerApiRequestOptions,
@@ -286,7 +289,15 @@ async function resolveAuthToken(
   try {
     const cookieStore = await cookies();
 
+    // Primary HttpOnly authentication cookie
+    const authToken = cookieStore.get("auth_token")?.value;
+    if (authToken && authToken.trim().length > 0) {
+      return authToken.trim();
+    }
+
+    // Fallback authentication cookies
     for (const key of SERVER_AUTH_COOKIE_KEYS) {
+      if (key === "auth_token") continue;
       const cookie = cookieStore.get(key);
       if (cookie?.value && cookie.value.trim().length > 0) {
         return cookie.value.trim();

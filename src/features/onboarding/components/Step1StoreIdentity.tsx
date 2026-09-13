@@ -64,14 +64,14 @@ export function Step1StoreIdentity({ form, onNext }: Step1StoreIdentityProps) {
   };
 
   return (
-    <div className="space-y-6 font-bengali">
+    <div className="space-y-6">
       {/* Step Heading */}
       <div className="space-y-1.5 text-center sm:text-left">
         <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
-          আপনার স্টোরের পরিচিতি নির্ধারণ করুন
+          Define your store identity
         </h2>
         <p className="text-sm text-muted-foreground">
-          গ্রাহকরা আপনার অনলাইন স্টোরটি যেভাবে চিনবে এবং খুঁজে পাবে।
+          How customers will recognize and discover your online storefront.
         </p>
       </div>
 
@@ -83,13 +83,13 @@ export function Step1StoreIdentity({ form, onNext }: Step1StoreIdentityProps) {
             className="flex items-center gap-1.5 text-sm font-semibold text-foreground"
           >
             <Store className="size-4 text-primary" />
-            স্টোরের নাম <span className="text-destructive">*</span>
+            Store Name <span className="text-destructive">*</span>
           </label>
           <div className="relative">
             <input
               id="storeName"
               type="text"
-              placeholder="যেমন: মাই লাইফস্টাইল বা গ্যাজেট হাব"
+              placeholder="e.g. My Lifestyle or Gadget Hub"
               {...register("storeName")}
               className={`w-full rounded-xl border bg-background px-4 py-2.5 text-sm text-foreground shadow-2xs transition-all duration-200 placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-transparent ${
                 errors.storeName
@@ -114,16 +114,16 @@ export function Step1StoreIdentity({ form, onNext }: Step1StoreIdentityProps) {
               className="flex items-center gap-1.5 text-sm font-semibold text-foreground"
             >
               <Globe className="size-4 text-primary" />
-              সাবডোমেন (Subdomain) <span className="text-destructive">*</span>
+              Subdomain <span className="text-destructive">*</span>
             </label>
             {storeName && (
               <button
                 type="button"
                 onClick={handleResetSubdomain}
-                className="flex items-center gap-1 text-[11px] font-medium text-primary hover:underline"
+                className="flex items-center gap-1 text-[11px] font-medium text-primary hover:underline cursor-pointer"
               >
                 <RefreshCw className="size-3" />
-                নাম অনুযায়ী সাজান
+                Sync with store name
               </button>
             )}
           </div>
@@ -160,7 +160,7 @@ export function Step1StoreIdentity({ form, onNext }: Step1StoreIdentityProps) {
             className="flex items-center gap-1.5 text-sm font-semibold text-foreground"
           >
             <Phone className="size-4 text-primary" />
-            স্টোরের অফিসিয়াল মোবাইল নম্বর{" "}
+            Official Store Mobile Number{" "}
             <span className="text-destructive">*</span>
           </label>
           <div className="relative flex rounded-xl border border-border bg-background shadow-2xs transition-all duration-200 focus-within:border-transparent focus-within:ring-2 focus-within:ring-ring">
@@ -177,7 +177,7 @@ export function Step1StoreIdentity({ form, onNext }: Step1StoreIdentityProps) {
             />
           </div>
           <p className="text-[11px] text-muted-foreground">
-            অর্ডার আপডেট, নোটিফিকেশন ও গ্রাহক যোগাযোগের জন্য ব্যবহার করা হবে।
+            Used for order notifications, updates, and customer support.
           </p>
           {errors.storePhone && (
             <p className="flex items-center gap-1.5 text-xs text-destructive">
@@ -194,9 +194,9 @@ export function Step1StoreIdentity({ form, onNext }: Step1StoreIdentityProps) {
           type="button"
           onClick={onNext}
           size="lg"
-          className="w-full justify-center gap-2 rounded-xl text-sm font-bold shadow-md transition-all duration-200 active:scale-[0.99]"
+          className="w-full justify-center gap-2 rounded-xl text-sm font-bold shadow-md transition-all duration-200 active:scale-[0.99] cursor-pointer"
         >
-          <span>পরবর্তী ধাপ</span>
+          <span>Next Step</span>
           <ArrowRight className="size-4" />
         </Button>
       </div>

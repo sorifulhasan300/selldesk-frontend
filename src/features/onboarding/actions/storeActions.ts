@@ -49,7 +49,7 @@ export async function createStoreAction(
 
       return {
         success: false,
-        message: "স্টোর ফর্মের তথ্য পুনরায় যাচাই করুন।",
+        message: "Please review the store details and try again.",
         error: "Validation failed",
         errors: fieldErrors,
       };
@@ -126,7 +126,7 @@ export async function createStoreAction(
 
     return {
       success: true,
-      message: "অভিনন্দন! আপনার স্টোরটি সফলভাবে প্রস্তুত হয়েছে 🎉",
+      message: "Congratulations! Your store was created successfully 🎉",
       store: createdStore,
       data: createdStore,
       tokens,
@@ -135,9 +135,7 @@ export async function createStoreAction(
     if (error instanceof ServerApiError) {
       return {
         success: false,
-        message:
-          error.bengaliMessage ||
-          "স্টোর তৈরি করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।",
+        message: error.message || "Failed to create store. Please try again.",
         error: error.message,
         errors: error.errors,
       };
@@ -146,11 +144,11 @@ export async function createStoreAction(
     const rawMessage =
       error instanceof Error
         ? error.message
-        : "স্টোর তৈরি প্রক্রিয়া সম্পন্ন করা সম্ভব হয়নি";
+        : "Unable to complete store creation. Please try again.";
 
     return {
       success: false,
-      message: "স্টোর তৈরি করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।",
+      message: "Failed to create store. Please try again.",
       error: rawMessage,
     };
   }

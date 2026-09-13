@@ -26,8 +26,8 @@ export async function uploadImageAction(
     if (!file || !(file instanceof Blob)) {
       return {
         success: false,
-        message: "কোনো ফাইল নির্বাচন করা হয়নি",
-        error: "অনুগ্রহ করে একটি ছবি ফাইল নির্বাচন করুন",
+        message: "No file selected",
+        error: "Please select an image file to upload",
       };
     }
 
@@ -47,7 +47,7 @@ export async function uploadImageAction(
 
       return {
         success: true,
-        message: "ছবি সফলভাবে আপলোড হয়েছে!",
+        message: "Image uploaded successfully!",
         data: result,
       };
     } catch (primaryError: unknown) {
@@ -65,7 +65,7 @@ export async function uploadImageAction(
 
         return {
           success: true,
-          message: "ছবি সফলভাবে আপলোড হয়েছে!",
+          message: "Image uploaded successfully!",
           data: fallbackResult,
         };
       }
@@ -76,7 +76,7 @@ export async function uploadImageAction(
     if (error instanceof ServerApiError) {
       return {
         success: false,
-        message: error.bengaliMessage || "ছবি আপলোড ব্যর্থ হয়েছে",
+        message: error.message || "Failed to upload image",
         error: error.message,
       };
     }
@@ -84,11 +84,11 @@ export async function uploadImageAction(
     const rawMessage =
       error instanceof Error
         ? error.message
-        : "ছবি আপলোড প্রক্রিয়া সম্পন্ন করা সম্ভব হয়নি";
+        : "Unable to complete image upload";
 
     return {
       success: false,
-      message: "ছবি আপলোড ব্যর্থ হয়েছে",
+      message: "Failed to upload image",
       error: rawMessage,
     };
   }

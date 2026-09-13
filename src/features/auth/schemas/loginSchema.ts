@@ -8,8 +8,8 @@ export const loginSchema = z.object({
   emailOrPhone: z
     .string()
     .trim()
-    .min(1, { message: "আপনার ইমেইল অথবা মোবাইল নম্বর লিখুন" }),
-  password: z.string().min(1, { message: "পাসওয়ার্ড দিন" }),
+    .min(1, { message: "Email or phone number is required" }),
+  password: z.string().min(1, { message: "Password is required" }),
   rememberMe: z.boolean().default(false).optional(),
 });
 

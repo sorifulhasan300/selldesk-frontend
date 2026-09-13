@@ -13,13 +13,15 @@ export const verifyEmailSchema = z.object({
     .string()
     .trim()
     .toLowerCase()
-    .min(1, { message: "ইমেইল এড্রেস আবশ্যক" })
-    .email({ message: "সঠিক ইমেইল এড্রেস দিন" }),
+    .min(1, { message: "Email address is required" })
+    .email({ message: "Please enter a valid email address" }),
   otp: z
     .string()
     .trim()
-    .length(6, { message: "ওটিপি কোডটি অবশ্যই ৬ ডিজিটের হতে হবে" })
-    .regex(OTP_REGEX, { message: "ওটিপি শুধুমাত্র সংখ্যা (০-৯) হতে হবে" }),
+    .length(6, { message: "Verification code must be 6 digits" })
+    .regex(OTP_REGEX, {
+      message: "Verification code must contain digits only",
+    }),
 });
 
 export type VerifyEmailFormData = z.infer<typeof verifyEmailSchema>;
@@ -32,8 +34,8 @@ export const resendOtpSchema = z.object({
     .string()
     .trim()
     .toLowerCase()
-    .min(1, { message: "ইমেইল এড্রেস আবশ্যক" })
-    .email({ message: "সঠিক ইমেইল এড্রেস দিন" }),
+    .min(1, { message: "Email address is required" })
+    .email({ message: "Please enter a valid email address" }),
 });
 
 export type ResendOtpFormData = z.infer<typeof resendOtpSchema>;

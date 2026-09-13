@@ -81,19 +81,19 @@ export function VerifyEmailForm({ initialEmail }: VerifyEmailFormProps) {
       const result = await resendOtpAction({ email: emailValue });
 
       if (result.success) {
-        toast.success("নতুন ওটিপি কোড পাঠানো হয়েছে!", {
-          description: `আপনার ${emailValue} ইমেইলের ইনবক্স বা স্প্যাম ফোল্ডার চেক করুন।`,
+        toast.success("New OTP code sent!", {
+          description: `Check the inbox or spam folder for ${emailValue}.`,
         });
         setCountdown(60);
       } else {
-        toast.error("ওটিপি পুনরায় পাঠাতে সমস্যা হয়েছে", {
+        toast.error("Failed to resend OTP", {
           description: result.error || result.message,
         });
       }
     } catch (err: unknown) {
       const msg =
-        err instanceof Error ? err.message : "ওটিপি পুনরায় পাঠানো সম্ভব হয়নি";
-      toast.error("ওটিপি পুনরায় পাঠাতে সমস্যা হয়েছে", { description: msg });
+        err instanceof Error ? err.message : "Unable to resend OTP code.";
+      toast.error("Failed to resend OTP", { description: msg });
     } finally {
       setIsResending(false);
     }
@@ -106,25 +106,25 @@ export function VerifyEmailForm({ initialEmail }: VerifyEmailFormProps) {
         const result = await verifyEmailAction(data);
 
         if (!result.success) {
-          toast.error("ওটিপি যাচাই ব্যর্থ হয়েছে", {
+          toast.error("OTP verification failed", {
             description:
-              result.error || result.message || "সঠিক ৬ ডিজিটের ওটিপি কোড দিন।",
+              result.error ||
+              result.message ||
+              "Please enter a valid 6-digit OTP code.",
           });
           return;
         }
 
         // Store active session in client store upon successful email verification
-        if (result.user && result.tokens) {
+        if (result.user) {
           setSession({
             user: result.user,
-            tokens: result.tokens,
             isAuthenticated: true,
-            createdAt: new Date().toISOString(),
           });
         }
 
-        toast.success("ইমেইল সফলভাবে ভেরিফাই হয়েছে! 🎉", {
-          description: "আপনাকে স্টোর সেটআপ পেজে নিয়ে যাওয়া হচ্ছে...",
+        toast.success("Email verified successfully! 🎉", {
+          description: "Redirecting to store onboarding...",
         });
 
         // Immediately route to onboarding for store creation
@@ -133,27 +133,23 @@ export function VerifyEmailForm({ initialEmail }: VerifyEmailFormProps) {
         const msg =
           err instanceof Error
             ? err.message
-            : "ওটিপি যাচাই সম্পন্ন করা সম্ভব হয়নি";
-        toast.error("ভেরিফিকেশন ব্যর্থ হয়েছে", { description: msg });
+            : "Unable to complete OTP verification.";
+        toast.error("Verification failed", { description: msg });
       }
     });
   };
 
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      noValidate
-      className="space-y-5 font-bengali"
-    >
+    <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
       {/* Visual Instruction Badge */}
       <div className="rounded-xl border border-primary/20 bg-secondary/30 p-3 text-center text-xs text-foreground/85">
         <div className="flex items-center justify-center gap-1.5 font-semibold text-primary mb-1">
           <Mail className="size-4" />
-          <span>আপনার ইমেইলে ওটিপি কোড পাঠানো হয়েছে</span>
+          <span>OTP code sent to your email</span>
         </div>
         <p className="text-muted-foreground text-[11px] leading-relaxed">
-          আপনার ইনবক্স অথবা স্প্যাম (Spam/Junk) ফোল্ডার চেক করে ৬ ডিজিটের
-          ভেরিফিকেশন কোডটি নিচে দিন।
+          Please check your inbox or spam (Spam/Junk) folder and enter the
+          6-digit verification code below.
         </p>
       </div>
 
@@ -164,7 +160,7 @@ export function VerifyEmailForm({ initialEmail }: VerifyEmailFormProps) {
           className="flex items-center gap-1.5 text-xs font-semibold text-foreground"
         >
           <Mail className="size-3.5 text-primary" />
-          ইমেইল এড্রেস <span className="text-destructive">*</span>
+          Email Address <span className="text-destructive">*</span>
         </label>
         <div className="relative">
           <input
@@ -194,8 +190,8 @@ export function VerifyEmailForm({ initialEmail }: VerifyEmailFormProps) {
           htmlFor="otp"
           className="flex items-center gap-1.5 text-xs font-semibold text-foreground"
         >
-          <KeyRound className="size-3.5 text-primary" />৬ ডিজিটের ওটিপি (OTP)
-          কোড <span className="text-destructive">*</span>
+          <KeyRound className="size-3.5 text-primary" />
+          6-Digit Verification Code <span className="text-destructive">*</span>
         </label>
         <div className="relative">
           <input
@@ -225,10 +221,10 @@ export function VerifyEmailForm({ initialEmail }: VerifyEmailFormProps) {
 
       {/* Resend OTP Timer & Button */}
       <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
-        <span>কোড পাননি?</span>
+        <span>Didn&apos;t receive the code?</span>
         {countdown > 0 ? (
           <span className="font-mono text-muted-foreground font-medium tabular-nums">
-            পুনরায় পাঠান ({countdown}s)
+            Resend in ({countdown}s)
           </span>
         ) : (
           <button
@@ -240,12 +236,12 @@ export function VerifyEmailForm({ initialEmail }: VerifyEmailFormProps) {
             {isResending ? (
               <>
                 <Loader2 className="size-3 animate-spin" />
-                <span>পাঠানো হচ্ছে...</span>
+                <span>Sending...</span>
               </>
             ) : (
               <>
                 <RotateCcw className="size-3" />
-                <span>পুনরায় কোড পাঠান</span>
+                <span>Resend Code</span>
               </>
             )}
           </button>
@@ -262,11 +258,11 @@ export function VerifyEmailForm({ initialEmail }: VerifyEmailFormProps) {
           {isPending ? (
             <>
               <Loader2 className="size-4 animate-spin" />
-              <span>যাচাই করা হচ্ছে...</span>
+              <span>Verifying...</span>
             </>
           ) : (
             <>
-              <span>ইমেইল ভেরিফাই ও এগিয়ে যান</span>
+              <span>Verify Email & Continue</span>
               <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-1" />
             </>
           )}
@@ -276,7 +272,7 @@ export function VerifyEmailForm({ initialEmail }: VerifyEmailFormProps) {
       {/* Trust Guarantee Note */}
       <div className="flex items-center justify-center gap-1.5 pt-1 text-[11px] text-muted-foreground">
         <ShieldCheck className="size-3.5 text-primary" />
-        <span>ইমেইল ভেরিফিকেশন আপনার স্টোরের নিরাপত্তা নিশ্চিত করে</span>
+        <span>Email verification secures your store account</span>
       </div>
     </form>
   );

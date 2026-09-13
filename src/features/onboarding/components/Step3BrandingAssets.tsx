@@ -41,7 +41,7 @@ export function Step3BrandingAssets({
 
   const logoUrl = watch("logoUrl");
   const bannerUrl = watch("bannerUrl");
-  const storeName = watch("storeName") || "আপনার স্টোর";
+  const storeName = watch("storeName") || "Your Store";
 
   const [logoImgError, setLogoImgError] = useState(false);
   const [bannerImgError, setBannerImgError] = useState(false);
@@ -70,16 +70,15 @@ export function Step3BrandingAssets({
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      toast.error("ভুল ফাইল ফরম্যাট", {
-        description:
-          "অনুগ্রহ করে একটি ছবি ফাইল (JPG, PNG, WEBP) নির্বাচন করুন।",
+      toast.error("Invalid file format", {
+        description: "Please select an image file (JPG, PNG, WEBP).",
       });
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      toast.error("ফাইল সাইজ অত্যন্ত বড়", {
-        description: "ছবির সাইজ সর্বোচ্চ ৫ মেগাবাইট (5MB) হতে পারে।",
+      toast.error("File size too large", {
+        description: "Image size must be under 5MB.",
       });
       return;
     }
@@ -103,15 +102,15 @@ export function Step3BrandingAssets({
           shouldValidate: true,
           shouldDirty: true,
         });
-        toast.success("লোগো সফলভাবে আপলোড হয়েছে!");
+        toast.success("Logo uploaded successfully!");
       } else {
-        toast.error("লোগো আপলোড ব্যর্থ হয়েছে", {
+        toast.error("Failed to upload logo", {
           description: result.error || result.message,
         });
       }
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "লোগো আপলোড করা যায়নি";
-      toast.error("লোগো আপলোড ব্যর্থ হয়েছে", { description: msg });
+      const msg = err instanceof Error ? err.message : "Failed to upload logo";
+      toast.error("Failed to upload logo", { description: msg });
     } finally {
       setIsUploadingLogo(false);
       if (logoFileInputRef.current) {
@@ -128,16 +127,15 @@ export function Step3BrandingAssets({
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      toast.error("ভুল ফাইল ফরম্যাট", {
-        description:
-          "অনুগ্রহ করে একটি ছবি ফাইল (JPG, PNG, WEBP) নির্বাচন করুন।",
+      toast.error("Invalid file format", {
+        description: "Please select an image file (JPG, PNG, WEBP).",
       });
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      toast.error("ফাইল সাইজ অত্যন্ত বড়", {
-        description: "ছবির সাইজ সর্বোচ্চ ৫ মেগাবাইট (5MB) হতে পারে।",
+      toast.error("File size too large", {
+        description: "Image size must be under 5MB.",
       });
       return;
     }
@@ -161,16 +159,16 @@ export function Step3BrandingAssets({
           shouldValidate: true,
           shouldDirty: true,
         });
-        toast.success("ব্যানার সফলভাবে আপলোড হয়েছে!");
+        toast.success("Banner uploaded successfully!");
       } else {
-        toast.error("ব্যানার আপলোড ব্যর্থ হয়েছে", {
+        toast.error("Failed to upload banner", {
           description: result.error || result.message,
         });
       }
     } catch (err: unknown) {
       const msg =
-        err instanceof Error ? err.message : "ব্যানার আপলোড করা যায়নি";
-      toast.error("ব্যানার আপলোড ব্যর্থ হয়েছে", { description: msg });
+        err instanceof Error ? err.message : "Failed to upload banner";
+      toast.error("Failed to upload banner", { description: msg });
     } finally {
       setIsUploadingBanner(false);
       if (bannerFileInputRef.current) {
@@ -180,19 +178,19 @@ export function Step3BrandingAssets({
   };
 
   return (
-    <div className="space-y-6 font-bengali">
+    <div className="space-y-6">
       {/* Step Heading */}
       <div className="space-y-1.5 text-center sm:text-left">
         <div className="inline-flex items-center gap-1.5 rounded-full border border-border/80 bg-secondary/60 px-3 py-0.5 text-xs font-medium text-primary">
           <Sparkles className="size-3" />
-          ঐচ্ছিক ধাপ (Optional)
+          Optional Step
         </div>
         <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
-          ব্র্যান্ডিং ও মিডিয়া যুক্ত করুন
+          Add branding & media
         </h2>
         <p className="text-sm text-muted-foreground">
-          আপনার স্টোরের লোগো ও ব্যানার দিন। চাইলে এখন স্কিপ করে পরবর্তীতে
-          ড্যাশবোর্ড থেকেও যুক্ত করতে পারবেন।
+          Upload your store logo and banner. You can also skip this and
+          configure them later in your dashboard.
         </p>
       </div>
 
@@ -205,7 +203,7 @@ export function Step3BrandingAssets({
               className="flex items-center gap-1.5 text-sm font-semibold text-foreground"
             >
               <ImageIcon className="size-4 text-primary" />
-              স্টোরের লোগো (Store Logo)
+              Store Logo
             </label>
 
             {/* Logo File Upload Button */}
@@ -227,12 +225,12 @@ export function Step3BrandingAssets({
               {isUploadingLogo ? (
                 <>
                   <Loader2 className="size-3 animate-spin" />
-                  <span>আপলোড হচ্ছে...</span>
+                  <span>Uploading...</span>
                 </>
               ) : (
                 <>
                   <Upload className="size-3" />
-                  <span>ফাইল আপলোড</span>
+                  <span>Upload File</span>
                 </>
               )}
             </button>
@@ -255,7 +253,7 @@ export function Step3BrandingAssets({
                 <div className="flex flex-col items-center justify-center p-2 text-center">
                   <Store className="size-6 text-muted-foreground/60" />
                   <span className="text-[10px] text-muted-foreground font-medium mt-1">
-                    লোগো প্রিভিউ
+                    Logo Preview
                   </span>
                 </div>
               )}
@@ -282,8 +280,8 @@ export function Step3BrandingAssets({
                       setValue("logoUrl", "", { shouldValidate: true });
                       setValue("logoPublicId", "", { shouldValidate: true });
                     }}
-                    className="p-2 text-muted-foreground hover:text-foreground"
-                    title="মুছে ফেলুন"
+                    className="p-2 text-muted-foreground hover:text-foreground cursor-pointer"
+                    title="Remove"
                   >
                     <X className="size-4" />
                   </button>
@@ -292,7 +290,7 @@ export function Step3BrandingAssets({
 
               {/* Sample presets */}
               <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-                <span>নমুনা লোগো:</span>
+                <span>Sample logos:</span>
                 {sampleLogos.map((url, i) => (
                   <button
                     key={url}
@@ -306,7 +304,7 @@ export function Step3BrandingAssets({
                     }}
                     className="text-primary hover:underline font-medium cursor-pointer"
                   >
-                    ডেমো {i + 1}
+                    Demo {i + 1}
                   </button>
                 ))}
               </div>
@@ -329,7 +327,7 @@ export function Step3BrandingAssets({
               className="flex items-center gap-1.5 text-sm font-semibold text-foreground"
             >
               <UploadCloud className="size-4 text-primary" />
-              স্টোরের ব্যানার (Store Banner)
+              Store Banner
             </label>
 
             {/* Banner File Upload Button */}
@@ -351,12 +349,12 @@ export function Step3BrandingAssets({
               {isUploadingBanner ? (
                 <>
                   <Loader2 className="size-3 animate-spin" />
-                  <span>আপলোড হচ্ছে...</span>
+                  <span>Uploading...</span>
                 </>
               ) : (
                 <>
                   <Upload className="size-3" />
-                  <span>ফাইল আপলোড</span>
+                  <span>Upload File</span>
                 </>
               )}
             </button>
@@ -383,7 +381,7 @@ export function Step3BrandingAssets({
                   {storeName}
                 </span>
                 <span className="text-[11px] text-muted-foreground">
-                  ব্যানার সাইজ রিকমেন্ডেশন: ১২০০x৪০০ পিক্সেল
+                  Recommended size: 1200x400 pixels
                 </span>
               </div>
             )}
@@ -409,8 +407,8 @@ export function Step3BrandingAssets({
                     setValue("bannerUrl", "", { shouldValidate: true });
                     setValue("bannerPublicId", "", { shouldValidate: true });
                   }}
-                  className="p-2 text-muted-foreground hover:text-foreground"
-                  title="মুছে ফেলুন"
+                  className="p-2 text-muted-foreground hover:text-foreground cursor-pointer"
+                  title="Remove"
                 >
                   <X className="size-4" />
                 </button>
@@ -419,7 +417,7 @@ export function Step3BrandingAssets({
 
             {/* Sample presets */}
             <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-              <span>নমুনা ব্যানার:</span>
+              <span>Sample banners:</span>
               {sampleBanners.map((url, i) => (
                 <button
                   key={url}
@@ -433,7 +431,7 @@ export function Step3BrandingAssets({
                   }}
                   className="text-primary hover:underline font-medium cursor-pointer"
                 >
-                  ডেমো {i + 1}
+                  Demo {i + 1}
                 </button>
               ))}
             </div>
@@ -451,9 +449,8 @@ export function Step3BrandingAssets({
         <div className="rounded-xl border border-border/80 bg-secondary/30 p-3.5 text-xs text-foreground/80 flex items-start gap-2.5">
           <CheckCircle className="size-4 text-primary shrink-0 mt-0.5" />
           <p className="leading-relaxed">
-            লোগো বা ব্যানার না থাকলেও সমস্যা নেই। আপনি যেকোনো সময় স্টোর
-            ড্যাশবোর্ডের <strong>সেটিংস</strong> পেজ থেকে যেকোনো ছবি বা ব্যানার
-            আপলোড করতে পারবেন।
+            No logo or banner right now? You can always upload or update them
+            later from your store&apos;s <strong>Settings</strong> page.
           </p>
         </div>
       </div>
@@ -467,10 +464,10 @@ export function Step3BrandingAssets({
             variant="outline"
             size="lg"
             disabled={isSubmitting || isUploadingLogo || isUploadingBanner}
-            className="flex-1 justify-center gap-2 rounded-xl text-sm font-bold"
+            className="flex-1 justify-center gap-2 rounded-xl text-sm font-bold cursor-pointer"
           >
             <ArrowLeft className="size-4" />
-            <span>পেছনে যান</span>
+            <span>Back</span>
           </Button>
 
           {/* Primary CTA: Create Store */}
@@ -484,10 +481,10 @@ export function Step3BrandingAssets({
             {isSubmitting ? (
               <>
                 <Loader2 className="size-4 animate-spin" />
-                <span>স্টোর প্রস্তুত হচ্ছে...</span>
+                <span>Creating store...</span>
               </>
             ) : (
-              <span>স্টোর তৈরি করুন 🚀</span>
+              <span>Create Store 🚀</span>
             )}
           </Button>
         </div>
@@ -500,7 +497,7 @@ export function Step3BrandingAssets({
             onClick={() => onSubmit(true)}
             className="inline-flex items-center justify-center text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground hover:underline active:scale-95 disabled:opacity-50 cursor-pointer"
           >
-            এখনি স্কিপ করুন
+            Skip for now
           </button>
         </div>
       </div>

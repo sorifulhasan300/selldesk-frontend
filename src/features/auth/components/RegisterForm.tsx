@@ -62,16 +62,15 @@ export function RegisterForm() {
 
     // Validate mime type and file size (max 5MB)
     if (!file.type.startsWith("image/")) {
-      toast.error("ভুল ফাইল ফরম্যাট", {
-        description:
-          "অনুগ্রহ করে একটি ছবি ফাইল (JPG, PNG, WEBP) নির্বাচন করুন।",
+      toast.error("Invalid file format", {
+        description: "Please select an image file (JPG, PNG, WEBP).",
       });
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      toast.error("ফাইল সাইজ অত্যন্ত বড়", {
-        description: "ছবির সাইজ সর্বোচ্চ ৫ মেগাবাইট (5MB) হতে পারে।",
+      toast.error("File size too large", {
+        description: "Image size must be under 5MB.",
       });
       return;
     }
@@ -91,15 +90,15 @@ export function RegisterForm() {
         setValue("avatarPublicId", uploadResult.data.publicId, {
           shouldValidate: true,
         });
-        toast.success("প্রোফাইল ছবি সফলভাবে আপলোড হয়েছে!");
+        toast.success("Profile photo uploaded successfully!");
       } else {
-        toast.error("ছবি আপলোড ব্যর্থ হয়েছে", {
+        toast.error("Image upload failed", {
           description: uploadResult.error || uploadResult.message,
         });
       }
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "ছবি আপলোড করা যায়নি";
-      toast.error("ছবি আপলোড ব্যর্থ হয়েছে", { description: msg });
+      const msg = err instanceof Error ? err.message : "Failed to upload image";
+      toast.error("Image upload failed", { description: msg });
     } finally {
       setIsUploadingAvatar(false);
       if (fileInputRef.current) {
@@ -120,11 +119,11 @@ export function RegisterForm() {
         const result = await signUpAction(data);
 
         if (!result.success) {
-          toast.error("রেজিস্ট্রেশন ব্যর্থ হয়েছে", {
+          toast.error("Registration failed", {
             description:
               result.error ||
               result.message ||
-              "রেজিস্ট্রেশন প্রক্রিয়া সম্পন্ন করা সম্ভব হয়নি। আবার চেষ্টা করুন।",
+              "Unable to complete registration. Please try again.",
           });
           return;
         }
@@ -147,8 +146,9 @@ export function RegisterForm() {
           storePhone: data.phone,
         });
 
-        toast.success(result.message || "অ্যাকাউন্ট সফলভাবে তৈরি হয়েছে!", {
-          description: "আপনার ইমেইলে ৬ ডিজিটের ওটিপি (OTP) কোড পাঠানো হয়েছে।",
+        toast.success(result.message || "Account created successfully!", {
+          description:
+            "A 6-digit verification code has been sent to your email.",
         });
 
         // Navigate to email verification route
@@ -157,8 +157,8 @@ export function RegisterForm() {
         const errorMessage =
           error instanceof Error
             ? error.message
-            : "রেজিস্ট্রেশন প্রক্রিয়া সম্পন্ন করা সম্ভব হয়নি। আবার চেষ্টা করুন।";
-        toast.error("রেজিস্ট্রেশন ব্যর্থ হয়েছে", {
+            : "Unable to complete registration. Please try again.";
+        toast.error("Registration failed", {
           description: errorMessage,
         });
       }
@@ -166,11 +166,7 @@ export function RegisterForm() {
   };
 
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      noValidate
-      className="space-y-4 font-bengali"
-    >
+    <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
       {/* Profile Avatar Upload Section */}
       <div className="flex flex-col items-center justify-center pb-2">
         <div className="relative group">
@@ -187,7 +183,7 @@ export function RegisterForm() {
             ) : (
               <div className="flex flex-col items-center justify-center text-muted-foreground">
                 <Camera className="size-6 text-muted-foreground/80 group-hover:text-primary transition-colors" />
-                <span className="text-[10px] mt-0.5 font-medium">ছবি দিন</span>
+                <span className="text-[10px] mt-0.5 font-medium">Upload</span>
               </div>
             )}
           </div>
@@ -198,7 +194,7 @@ export function RegisterForm() {
               type="button"
               onClick={handleRemoveAvatar}
               className="absolute -top-1 -right-1 flex size-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow-xs hover:bg-destructive/90 transition-colors"
-              title="ছবি মুছে ফেলুন"
+              title="Remove photo"
             >
               <X className="size-3" />
             </button>
@@ -220,12 +216,12 @@ export function RegisterForm() {
             <label
               htmlFor="avatarFileInput"
               className="absolute inset-0 cursor-pointer rounded-full"
-              title="প্রোফাইল ছবি নির্বাচন করুন"
+              title="Select profile photo"
             />
           )}
         </div>
         <p className="mt-1.5 text-[11px] text-muted-foreground">
-          প্রোফাইল ছবি (ঐচ্ছিক)
+          Profile Photo (Optional)
         </p>
       </div>
 
@@ -236,13 +232,13 @@ export function RegisterForm() {
           className="flex items-center gap-1.5 text-xs font-semibold text-foreground"
         >
           <User className="size-3.5 text-primary" />
-          আপনার সম্পূর্ণ নাম <span className="text-destructive">*</span>
+          Full Name <span className="text-destructive">*</span>
         </label>
         <div className="relative">
           <input
             id="fullName"
             type="text"
-            placeholder="যেমন: আরিফুল ইসলাম"
+            placeholder="e.g. Ariful Islam"
             autoComplete="name"
             disabled={isSubmitting}
             {...register("fullName")}
@@ -268,7 +264,7 @@ export function RegisterForm() {
           className="flex items-center gap-1.5 text-xs font-semibold text-foreground"
         >
           <Mail className="size-3.5 text-primary" />
-          ইমেইল এড্রেস <span className="text-destructive">*</span>
+          Email Address <span className="text-destructive">*</span>
         </label>
         <div className="relative">
           <input
@@ -300,7 +296,7 @@ export function RegisterForm() {
           className="flex items-center gap-1.5 text-xs font-semibold text-foreground"
         >
           <Phone className="size-3.5 text-primary" />
-          মোবাইল নম্বর <span className="text-destructive">*</span>
+          Mobile Number <span className="text-destructive">*</span>
         </label>
         <div className="relative flex rounded-xl border border-border bg-background shadow-2xs transition-all duration-200 focus-within:border-transparent focus-within:ring-2 focus-within:ring-ring">
           <span className="flex items-center gap-1 rounded-l-xl border-r border-border bg-muted/40 px-3 text-xs font-medium text-muted-foreground select-none">
@@ -340,13 +336,13 @@ export function RegisterForm() {
           className="flex items-center gap-1.5 text-xs font-semibold text-foreground"
         >
           <Lock className="size-3.5 text-primary" />
-          পাসওয়ার্ড <span className="text-destructive">*</span>
+          Password <span className="text-destructive">*</span>
         </label>
         <div className="relative">
           <input
             id="password"
             type={showPassword ? "text" : "password"}
-            placeholder="কমপক্ষে ৮ অক্ষরের শক্তিশালী পাসওয়ার্ড"
+            placeholder="At least 8 characters strong password"
             autoComplete="new-password"
             disabled={isSubmitting}
             {...register("password")}
@@ -362,7 +358,7 @@ export function RegisterForm() {
             tabIndex={-1}
             disabled={isSubmitting}
             className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-muted-foreground hover:text-foreground focus:outline-hidden transition-colors cursor-pointer"
-            aria-label={showPassword ? "পাসওয়ার্ড লুকান" : "পাসওয়ার্ড দেখুন"}
+            aria-label={showPassword ? "Hide password" : "Show password"}
           >
             {showPassword ? (
               <EyeOff className="size-4" />
@@ -372,8 +368,8 @@ export function RegisterForm() {
           </button>
         </div>
         <p className="text-[11px] text-muted-foreground">
-          কমপক্ষে ৮ অক্ষর, বড় হাতের (A-Z), ছোট হাতের (a-z) অক্ষর ও সংখ্যা (0-9)
-          থাকতে হবে
+          Must contain at least 8 characters with uppercase (A-Z), lowercase
+          (a-z), and numbers (0-9)
         </p>
         {errors.password && (
           <p className="flex items-center gap-1.5 text-xs text-destructive">
@@ -393,23 +389,23 @@ export function RegisterForm() {
             className="mt-0.5 size-4 rounded-sm border-border text-primary focus:ring-primary focus:ring-offset-background accent-primary cursor-pointer transition-colors"
           />
           <span className="text-xs text-muted-foreground leading-relaxed">
-            আমি SellDesk এর{" "}
+            I agree to SellDesk&apos;s{" "}
             <a
               href="#"
               onClick={(e) => e.preventDefault()}
               className="font-medium text-primary hover:underline"
             >
-              শর্তাবলী
+              Terms of Service
             </a>{" "}
-            এবং{" "}
+            and{" "}
             <a
               href="#"
               onClick={(e) => e.preventDefault()}
               className="font-medium text-primary hover:underline"
             >
-              গোপনীয়তা নীতি
-            </a>{" "}
-            মেনে নিচ্ছি।
+              Privacy Policy
+            </a>
+            .
           </span>
         </label>
         {errors.agreeTerms && (
@@ -430,11 +426,11 @@ export function RegisterForm() {
           {isSubmitting ? (
             <>
               <Loader2 className="size-4 animate-spin" />
-              <span>অ্যাকাউন্ট তৈরি হচ্ছে...</span>
+              <span>Creating account...</span>
             </>
           ) : (
             <>
-              <span>একাউন্ট তৈরি করুন 🚀</span>
+              <span>Create Account 🚀</span>
               <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-1" />
             </>
           )}
@@ -444,7 +440,7 @@ export function RegisterForm() {
       {/* Trust Guarantee Note */}
       <div className="flex items-center justify-center gap-1.5 pt-1 text-[11px] text-muted-foreground">
         <ShieldCheck className="size-3.5 text-primary" />
-        <span>আপনার সমস্ত তথ্য সম্পূর্ণ এনক্রিপ্টেড এবং নিরাপদ</span>
+        <span>All your data is fully encrypted and secure</span>
       </div>
     </form>
   );

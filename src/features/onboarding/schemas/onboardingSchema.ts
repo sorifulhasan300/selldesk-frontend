@@ -13,31 +13,32 @@ export const BD_PHONE_REGEX = /^01[3-9]\d{8}$/;
 export const SUBDOMAIN_REGEX = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 /**
- * Step 1: Store Identity Schema (স্টোরের প্রাথমিক তথ্য)
+ * Step 1: Store Identity Schema
  */
 export const step1Schema = z.object({
   storeName: z
     .string()
     .trim()
-    .min(3, { message: "স্টোরের নাম অন্তত ৩ অক্ষরের হতে হবে" })
-    .max(50, { message: "স্টোরের নাম সর্বোচ্চ ৫০ অক্ষরের হতে পারে" }),
+    .min(3, { message: "Store name must be at least 3 characters long" })
+    .max(50, { message: "Store name cannot exceed 50 characters" }),
   subDomain: z
     .string()
     .trim()
     .toLowerCase()
-    .min(3, { message: "সাবডোমেন অন্তত ৩ অক্ষরের হতে হবে" })
-    .max(30, { message: "সাবডোমেন সর্বোচ্চ ৩০ অক্ষরের হতে পারে" })
+    .min(3, { message: "Subdomain must be at least 3 characters long" })
+    .max(30, { message: "Subdomain cannot exceed 30 characters" })
     .regex(SUBDOMAIN_REGEX, {
       message:
-        "সাবডোমেনে শুধু ছোট হাতের ইংরেজি অক্ষর, সংখ্যা এবং মাঝে হাইফেন (-) ব্যবহার করা যাবে",
+        "Subdomain can only contain lowercase letters, numbers, and hyphens",
     }),
   storePhone: z.string().trim().regex(BD_PHONE_REGEX, {
-    message: "সঠিক বাংলাদেশী মোবাইল নম্বর দিন (যেমন: 01704319458)",
+    message:
+      "Please enter a valid Bangladeshi mobile number (e.g., 017XXXXXXXX)",
   }),
 });
 
 /**
- * Step 2: Business Insights Schema (ব্যবসার বিবরণ)
+ * Step 2: Business Insights Schema
  */
 export const PRODUCT_TYPES = ["PHYSICAL", "DIGITAL"] as const;
 export const SELLING_STATUSES = ["NEWBIE", "ALREADY_SELLING"] as const;
@@ -50,36 +51,36 @@ export const REVENUE_TIERS = [
 
 export const step2Schema = z.object({
   productType: z.enum(PRODUCT_TYPES, {
-    error: "অনুগ্রহ করে প্রোডাক্টের ধরণ নির্বাচন করুন",
+    error: "Please select a product type",
   }),
   sellingStatus: z.enum(SELLING_STATUSES, {
-    error: "আপনার বর্তমান বিক্রির অবস্থা নির্বাচন করুন",
+    error: "Please select your current business stage",
   }),
   currentRevenue: z.enum(REVENUE_TIERS, {
-    error: "বর্তমান মাসিক আয়ের সীমা নির্বাচন করুন",
+    error: "Please select your estimated monthly revenue",
   }),
   industryCategory: z
     .string()
     .trim()
-    .min(2, { message: "ইন্ডাস্ট্রি ক্যাটাগরি লিখুন বা নির্বাচন করুন" })
-    .max(50, { message: "ক্যাটাগরির নাম সর্বোচ্চ ৫০ অক্ষরের হতে পারে" }),
+    .min(2, { message: "Please select or enter an industry category" })
+    .max(50, { message: "Category name cannot exceed 50 characters" }),
 });
 
 /**
- * Step 3: Branding & Assets Schema (ব্র্যান্ডিং মিডিয়া - Optional/Skipable)
+ * Step 3: Branding & Assets Schema (Optional / Skipable)
  */
 export const step3Schema = z.object({
   logoUrl: z
     .string()
     .trim()
-    .url({ message: "সঠিক লোগো URL দিন" })
+    .url({ message: "Please enter a valid logo URL" })
     .optional()
     .or(z.literal("")),
   logoPublicId: z.string().optional().or(z.literal("")),
   bannerUrl: z
     .string()
     .trim()
-    .url({ message: "সঠিক ব্যানার URL দিন" })
+    .url({ message: "Please enter a valid banner URL" })
     .optional()
     .or(z.literal("")),
   bannerPublicId: z.string().optional().or(z.literal("")),

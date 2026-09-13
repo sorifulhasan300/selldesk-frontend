@@ -10,7 +10,7 @@ interface RegisterLayoutProps {
 
 export function RegisterLayout({ children }: RegisterLayoutProps) {
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-background text-foreground font-bengali">
+    <div className="relative min-h-screen w-full overflow-hidden bg-background text-foreground">
       {/* Background Decorative Ambient Glows */}
       <div
         className="pointer-events-none absolute -top-40 -left-40 size-[500px] rounded-full bg-primary/10 blur-3xl"
@@ -49,21 +49,19 @@ export function RegisterLayout({ children }: RegisterLayoutProps) {
               {/* Trust Badge Pill */}
               <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-secondary/60 px-3.5 py-1.5 text-xs font-semibold text-primary backdrop-blur-xs">
                 <Sparkles className="size-3.5" />
-                <span>
-                  ১০ দিনের ফ্রি ট্রায়াল - কোনো ক্রেডিট কার্ড লাগবে না
-                </span>
+                <span>10-Day Free Trial — No Credit Card Required</span>
               </div>
 
               <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl xl:text-5xl leading-tight">
-                আপনার স্বপ্নের অনলাইন স্টোর শুরু করুন{" "}
+                Launch your dream online store{" "}
                 <span className="text-primary underline decoration-primary/30 decoration-wavy underline-offset-8">
-                  মাত্র ২ মিনিটে
+                  in 2 minutes
                 </span>
               </h1>
 
               <p className="max-w-xl text-base text-muted-foreground leading-relaxed">
-                কোনো কোডিং বা টেকনিক্যাল জ্ঞান ছাড়াই আপনার ব্যবসার জন্য একটি
-                প্রফেশনাল ই-কমার্স ওয়েবসাইট গড়ে তুলুন।
+                Build a modern, high-converting e-commerce storefront for your
+                business with zero coding or technical experience required.
               </p>
 
               {/* High-Converting Feature Highlights */}
@@ -73,7 +71,8 @@ export function RegisterLayout({ children }: RegisterLayoutProps) {
                     <CheckCircle2 className="size-4" />
                   </div>
                   <span>
-                    বিকাশ, নগদ ও কার্ডে তাৎক্ষণিক পেমেন্ট গেটওয়ে ইন্টিগ্রেশন
+                    Instant payment gateway integration with bKash, Nagad, and
+                    Cards
                   </span>
                 </div>
                 <div className="flex items-center gap-3 text-sm text-foreground">
@@ -81,7 +80,8 @@ export function RegisterLayout({ children }: RegisterLayoutProps) {
                     <CheckCircle2 className="size-4" />
                   </div>
                   <span>
-                    রেডেক্স, স্টেডফাস্ট ও পেপারফ্লাই কুরিয়ার অটো-বুকিং সুবিধা
+                    Automated courier dispatch with RedX, Steadfast, and
+                    Paperfly
                   </span>
                 </div>
                 <div className="flex items-center gap-3 text-sm text-foreground">
@@ -89,7 +89,8 @@ export function RegisterLayout({ children }: RegisterLayoutProps) {
                     <CheckCircle2 className="size-4" />
                   </div>
                   <span>
-                    ফাস্ট সুপার-অপ্টিমাইজড স্টোরফ্রন্ট এবং ফ্রি সাবডোমেন
+                    Ultra-fast optimized storefront performance with a free
+                    subdomain
                   </span>
                 </div>
               </div>
@@ -100,13 +101,13 @@ export function RegisterLayout({ children }: RegisterLayoutProps) {
               <div className="flex items-center gap-4">
                 <div className="flex -space-x-2 overflow-hidden">
                   <div className="inline-flex size-9 items-center justify-center rounded-full bg-primary/20 text-xs font-bold text-primary border-2 border-background">
-                    রফিক
+                    RJ
                   </div>
                   <div className="inline-flex size-9 items-center justify-center rounded-full bg-secondary text-xs font-bold text-foreground border-2 border-background">
-                    তাসনিম
+                    TC
                   </div>
                   <div className="inline-flex size-9 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground border-2 border-background">
-                    আহমেদ
+                    AK
                   </div>
                 </div>
                 <div className="space-y-0.5">
@@ -116,8 +117,8 @@ export function RegisterLayout({ children }: RegisterLayoutProps) {
                     ))}
                   </div>
                   <p className="text-xs font-medium text-foreground">
-                    <strong className="font-bold">৫,০০০+</strong> সফল উদ্যোক্তার
-                    আস্থার প্রতীক
+                    Trusted by <strong className="font-bold">5,000+</strong>{" "}
+                    ambitious merchants
                   </p>
                 </div>
               </div>
@@ -149,17 +150,14 @@ export function RegisterLayout({ children }: RegisterLayoutProps) {
                   {/* Trust Badge Banner */}
                   <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-secondary/80 px-3 py-1 text-[11px] font-semibold text-primary">
                     <Sparkles className="size-3" />
-                    <span>
-                      ১০ দিনের ফ্রি ট্রায়াল - কোনো ক্রেডিট কার্ড লাগবে না
-                    </span>
+                    <span>10-Day Free Trial — No Credit Card Required</span>
                   </div>
 
                   <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground pt-1">
-                    নতুন অ্যাকাউন্ট তৈরি করুন
+                    Create your account
                   </h2>
                   <p className="text-xs sm:text-sm text-muted-foreground">
-                    আপনার প্রাথমিক তথ্য দিন এবং মাত্র কয়েক সেকেন্ডে স্টোর শুরু
-                    করুন।
+                    Enter your details to launch your online store in seconds.
                   </p>
                 </div>
 
@@ -169,12 +167,12 @@ export function RegisterLayout({ children }: RegisterLayoutProps) {
                 {/* Bottom Redirection Link */}
                 <div className="mt-6 border-t border-border/60 pt-4 text-center">
                   <p className="text-xs text-muted-foreground">
-                    ইতিমধ্যেই অ্যাকাউন্ট আছে?{" "}
+                    Already have an account?{" "}
                     <Link
                       href="/login"
                       className="font-semibold text-primary hover:underline transition-colors"
                     >
-                      লগইন করুন
+                      Sign In
                     </Link>
                   </p>
                 </div>
@@ -183,7 +181,7 @@ export function RegisterLayout({ children }: RegisterLayoutProps) {
               {/* Bottom Copyright and Security Assurance */}
               <div className="mt-6 text-center text-xs text-muted-foreground/80">
                 <p>
-                  © {new Date().getFullYear()} SellDesk. সর্বস্বত্ব সংরক্ষিত।
+                  © {new Date().getFullYear()} SellDesk. All rights reserved.
                 </p>
               </div>
             </div>

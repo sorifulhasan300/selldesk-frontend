@@ -53,7 +53,7 @@ export async function signUpAction(
 
       return {
         success: false,
-        message: "ফর্মের তথ্য সঠিক নয়। অনুগ্রহ করে যাচাই করুন।",
+        message: "Invalid form submission. Please review your details.",
         error: "Validation failed",
         errors: fieldErrors,
       };
@@ -94,10 +94,42 @@ export async function signUpAction(
     const raw = responseData as {
       message?: string;
       user?: AuthUser;
+      token?: string;
+      accessToken?: string;
+      tokens?: AuthTokens;
       data?: {
         user?: AuthUser;
+        token?: string;
+        accessToken?: string;
+        tokens?: AuthTokens;
       };
     };
+
+    const token =
+      raw?.data?.tokens?.accessToken ||
+      raw?.tokens?.accessToken ||
+      raw?.data?.accessToken ||
+      raw?.accessToken ||
+      raw?.data?.token ||
+      raw?.token;
+
+    if (token) {
+      const cookieStore = await cookies();
+      cookieStore.set("auth_token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/",
+        maxAge: 60 * 60 * 24 * 7, // 7 days
+      });
+      cookieStore.set("selldesk_access_token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/",
+        maxAge: 60 * 60 * 24 * 7,
+      });
+    }
 
     const userObj: AuthUser = raw?.data?.user ||
       raw?.user || {
@@ -108,23 +140,25 @@ export async function signUpAction(
         role: "STORE_OWNER",
         avatarUrl: formData.avatarUrl || null,
         avatarPublicId: formData.avatarPublicId || null,
-        isEmailVerified: false,
+        isEmailVerified: Boolean(token),
       };
 
     return {
       success: true,
-      requiresVerification: true,
+      requiresVerification: !token,
       email: formData.email.trim().toLowerCase(),
       message:
         raw?.message ||
-        "অ্যাকাউন্ট সফলভাবে তৈরি হয়েছে! আপনার ইমেইল যাচাই করতে ওটিপি (OTP) কোড পাঠানো হয়েছে।",
+        (token
+          ? "Account created successfully!"
+          : "Account created successfully! An OTP verification code has been sent to your email."),
       user: userObj,
     };
   } catch (error: unknown) {
     if (error instanceof ServerApiError) {
       return {
         success: false,
-        message: error.bengaliMessage || "রেজিস্ট্রেশন ব্যর্থ হয়েছে",
+        message: error.message || "Registration failed",
         error: error.message,
         errors: error.errors,
       };
@@ -133,11 +167,11 @@ export async function signUpAction(
     const rawMessage =
       error instanceof Error
         ? error.message
-        : "রেজিস্ট্রেশন প্রক্রিয়া সম্পন্ন করা সম্ভব হয়নি";
+        : "Unable to complete registration. Please try again.";
 
     return {
       success: false,
-      message: "রেজিস্ট্রেশন ব্যর্থ হয়েছে",
+      message: "Registration failed",
       error: rawMessage,
     };
   }
@@ -155,7 +189,7 @@ export async function verifyEmailAction(
     if (!validation.success) {
       return {
         success: false,
-        message: "সঠিক ইমেইল ও ৬ ডিজিটের ওটিপি দিন",
+        message: "Please enter a valid email and 6-digit OTP code",
         error: "Validation failed",
       };
     }
@@ -214,18 +248,16 @@ export async function verifyEmailAction(
 
     return {
       success: true,
-      message: raw?.message || "ইমেইল সফলভাবে ভেরিফাই হয়েছে!",
+      message: raw?.message || "Email verified successfully!",
       user: verifiedUser,
-      token: accessToken,
-      tokens,
     };
   } catch (error: unknown) {
     if (error instanceof ServerApiError) {
       return {
         success: false,
         message:
-          error.bengaliMessage ||
-          "ওটিপি যাচাই ব্যর্থ হয়েছে। সঠিক ওটিপি লিখুন।",
+          error.message ||
+          "OTP verification failed. Please enter the valid code.",
         error: error.message,
       };
     }
@@ -233,11 +265,11 @@ export async function verifyEmailAction(
     const rawMessage =
       error instanceof Error
         ? error.message
-        : "ওটিপি যাচাই প্রক্রিয়া সম্পন্ন করা সম্ভব হয়নি";
+        : "Unable to complete OTP verification.";
 
     return {
       success: false,
-      message: "ওটিপি যাচাই ব্যর্থ হয়েছে",
+      message: "OTP verification failed",
       error: rawMessage,
     };
   }
@@ -255,7 +287,7 @@ export async function resendOtpAction(
     if (!validation.success) {
       return {
         success: false,
-        message: "সঠিক ইমেইল এড্রেস দিন",
+        message: "Please enter a valid email address",
         error: "Validation failed",
       };
     }
@@ -274,25 +306,23 @@ export async function resendOtpAction(
       success: true,
       message:
         responseData?.message ||
-        "নতুন ওটিপি (OTP) কোড আপনার ইমেইলে পাঠানো হয়েছে!",
+        "A new OTP verification code has been sent to your email!",
     };
   } catch (error: unknown) {
     if (error instanceof ServerApiError) {
       return {
         success: false,
-        message: error.bengaliMessage || "ওটিপি পুনরায় পাঠাতে সমস্যা হয়েছে।",
+        message: error.message || "Failed to resend OTP code.",
         error: error.message,
       };
     }
 
     const rawMessage =
-      error instanceof Error
-        ? error.message
-        : "ওটিপি পুনরায় পাঠানো সম্ভব হয়নি";
+      error instanceof Error ? error.message : "Failed to resend OTP code.";
 
     return {
       success: false,
-      message: "ওটিপি পুনরায় পাঠাতে সমস্যা হয়েছে",
+      message: "Failed to resend OTP code",
       error: rawMessage,
     };
   }
@@ -315,14 +345,14 @@ export async function getCurrentUserAction(): Promise<
     if (!user || !user.id) {
       return {
         success: false,
-        message: "ব্যবহারকারীর তথ্য পাওয়া যায়নি",
+        message: "User details not found",
         error: "User not found",
       };
     }
 
     return {
       success: true,
-      message: "ইউজার প্রোফাইল সফলভাবে লোড হয়েছে",
+      message: "User profile loaded successfully",
       user,
       data: user,
     };
@@ -330,7 +360,7 @@ export async function getCurrentUserAction(): Promise<
     if (error instanceof ServerApiError) {
       return {
         success: false,
-        message: error.bengaliMessage || "ব্যবহারকারীর তথ্য লোড করা যায়নি",
+        message: error.message || "Failed to load user information",
         error: error.message,
       };
     }
@@ -338,11 +368,11 @@ export async function getCurrentUserAction(): Promise<
     const rawMessage =
       error instanceof Error
         ? error.message
-        : "ব্যবহারকারীর তথ্য লোড করা যায়নি";
+        : "Failed to load user information";
 
     return {
       success: false,
-      message: "ব্যবহারকারীর তথ্য লোড করা যায়নি",
+      message: "Failed to load user information",
       error: rawMessage,
     };
   }
@@ -383,7 +413,7 @@ export async function loginAction(
 
       return {
         success: false,
-        message: "আপনার ইমেইল/মোবাইল নম্বর ও পাসওয়ার্ড সঠিকভাবে লিখুন",
+        message: "Please provide valid login credentials",
         error: "Validation failed",
         errors: fieldErrors,
       };
@@ -501,10 +531,8 @@ export async function loginAction(
 
     return {
       success: true,
-      message: raw?.message || "লগইন সফল হয়েছে!",
+      message: raw?.message || "Login successful!",
       user: raw?.user,
-      token,
-      tokens: raw?.tokens,
       hasStore,
       redirectTo,
     };
@@ -522,30 +550,29 @@ export async function loginAction(
           requiresVerification: true,
           email: formData.emailOrPhone.trim().toLowerCase(),
           message:
-            "আপনার ইমেইল ভেরিফাই করা হয়নি। অনুগ্রহ করে ওটিপি দিয়ে ভেরিফাই করুন।",
+            "Your email is not verified yet. Please verify using the OTP sent to your email.",
           error: error.message,
         };
       }
 
-      const bengaliMessage =
+      const errorMessage =
         error.statusCode === 401
-          ? "ইমেইল/ফোন অথবা পাসওয়ার্ড সঠিক নয়"
-          : error.bengaliMessage || "লগইন ব্যর্থ হয়েছে";
+          ? "Invalid email/phone or password"
+          : error.message || "Login failed";
 
       return {
         success: false,
-        message: bengaliMessage,
+        message: errorMessage,
         error: error.message,
         errors: error.errors,
       };
     }
 
-    const rawMessage =
-      error instanceof Error ? error.message : "লগইন ব্যর্থ হয়েছে";
+    const rawMessage = error instanceof Error ? error.message : "Login failed";
 
     return {
       success: false,
-      message: "লগইন ব্যর্থ হয়েছে। তথ্য যাচাই করে আবার চেষ্টা করুন।",
+      message: "Login failed. Please verify your credentials and try again.",
       error: rawMessage,
     };
   }

@@ -83,21 +83,19 @@ export async function registerUser(
 
       return {
         session,
-        message: responseData.message || "রেজিস্ট্রেশন সফলভাবে সম্পন্ন হয়েছে!",
+        message: responseData.message || "Registration completed successfully!",
       };
     }
 
     // If backend replied with 409 or other business error
     if (response.status === 409) {
-      throw new Error(
-        "এই ইমেইল এড্রেস দিয়ে ইতিমধ্যে একটি অ্যাকাউন্ট তৈরি করা হয়েছে।",
-      );
+      throw new Error("An account with this email address already exists.");
     }
 
     if (response.status >= 400 && response.status < 500) {
       const errorJson = await response.json().catch(() => null);
       const serverMessage =
-        errorJson?.message || errorJson?.error || "রেজিস্ট্রেশন ব্যর্থ হয়েছে।";
+        errorJson?.message || errorJson?.error || "Registration failed.";
       const displayMessage = Array.isArray(serverMessage)
         ? serverMessage.join(", ")
         : serverMessage;
@@ -105,7 +103,7 @@ export async function registerUser(
     }
   } catch (err: unknown) {
     // If it is an intentional business error (like 409 email already exists), rethrow
-    if (err instanceof Error && err.message.includes("ইতিমধ্যে")) {
+    if (err instanceof Error && err.message.includes("already exists")) {
       throw err;
     }
 
@@ -125,6 +123,6 @@ export async function registerUser(
 
   return {
     session: localSession,
-    message: "রেজিস্ট্রেশন সফলভাবে সম্পন্ন হয়েছে!",
+    message: "Registration completed successfully!",
   };
 }

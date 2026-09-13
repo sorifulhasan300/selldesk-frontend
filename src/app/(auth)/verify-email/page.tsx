@@ -4,8 +4,8 @@ import { RegisterLayout, VerifyEmailForm } from "@/features/auth";
 import { Loader2 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "ইমেইল ভেরিফিকেশন | SellDesk",
-  description: "আপনার SellDesk অ্যাকাউন্ট সক্রিয় করতে ইমেইল ভেরিফাই করুন।",
+  title: "Verify Email | SellDesk",
+  description: "Verify your email address to activate your SellDesk account.",
 };
 
 function VerifyEmailFallback() {

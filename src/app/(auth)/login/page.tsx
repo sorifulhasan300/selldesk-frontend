@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { LoginLayout, LoginForm } from "@/features/auth";
 
 export const metadata: Metadata = {
-  title: "লগইন করুন | SellDesk",
+  title: "Sign In | SellDesk",
   description:
-    "SellDesk এ নিরাপদে আপনার অ্যাকাউন্টে লগইন করুন এবং আপনার অনলাইন স্টোরের যাবতীয় সেলস, প্রোডাক্ট ও অর্ডার সহজে পরিচালনা করুন।",
+    "Sign in securely to your SellDesk merchant account to manage sales, products, and orders.",
 };
 
 export default function LoginPage() {

@@ -126,15 +126,13 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
 
       if (!isStep1Valid) {
         setStep(1);
-        toast.error(
-          "অনুগ্রহ করে স্টোরের প্রাথমিক তথ্যগুলো পুনরায় যাচাই করুন।",
-        );
+        toast.error("Please review your store's basic information.");
         return;
       }
 
       if (!isStep2Valid) {
         setStep(2);
-        toast.error("অনুগ্রহ করে আপনার ব্যবসার বিবরণ পুনরায় যাচাই করুন।");
+        toast.error("Please review your business details.");
         return;
       }
 
@@ -147,11 +145,11 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
         const result = await createStoreAction(allData);
 
         if (!result.success) {
-          toast.error("স্টোর তৈরি করতে সমস্যা হয়েছে", {
+          toast.error("Failed to create store", {
             description:
               result.error ||
               result.message ||
-              "স্টোর তৈরি প্রক্রিয়া সম্পন্ন করা সম্ভব হয়নি। আবার চেষ্টা করুন।",
+              "Could not complete store setup. Please try again.",
           });
           return;
         }
@@ -166,15 +164,17 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
       resetOnboarding();
       setCreatedStoreData(allData);
       setIsSuccess(true);
-      toast.success("অভিনন্দন! আপনার স্টোরটি সফলভাবে প্রস্তুত হয়েছে 🎉", {
-        description: "আপনাকে ড্যাশবোর্ডে নিয়ে যাওয়া হচ্ছে...",
+      toast.success("Congratulations! Your store is ready 🎉", {
+        description: "Redirecting to your dashboard...",
       });
 
       // Immediate redirect to dashboard
       router.push("/dashboard");
     } catch (error) {
-      console.error("Onboarding submission failed:", error);
-      toast.error("দুঃখিত, স্টোর তৈরি করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।");
+      console.log("Onboarding submission failed:", error);
+      toast.error(
+        "An unexpected error occurred while creating your store. Please try again.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -222,30 +222,29 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
 
         {/* Success Screen Card */}
         {isSuccess && createdStoreData ? (
-          <div className="w-full max-w-xl rounded-2xl border border-border/60 bg-card p-8 shadow-xl backdrop-blur-md font-bengali text-center space-y-6">
+          <div className="w-full max-w-xl rounded-2xl border border-border/60 bg-card p-8 shadow-xl backdrop-blur-md text-center space-y-6">
             <div className="mx-auto flex size-16 items-center justify-center rounded-2xl bg-secondary text-primary shadow-xs">
               <Sparkles className="size-8 animate-bounce" />
             </div>
 
             <div className="space-y-2">
               <div className="inline-flex items-center gap-1.5 rounded-full border border-border/80 bg-secondary/60 px-3 py-1 text-xs font-semibold text-primary">
-                <CheckCircle2 className="size-3.5" /> স্টোর লাইভ হওয়ার জন্য
-                প্রস্তুত
+                <CheckCircle2 className="size-3.5" /> Store is ready to go live
               </div>
               <h2 className="text-2xl font-bold tracking-tight text-foreground">
-                🎉 অভিনন্দন! &quot;{createdStoreData.storeName}&quot; সফলভাবে
-                তৈরি হয়েছে!
+                🎉 Congratulations! &quot;{createdStoreData.storeName}&quot;
+                created successfully!
               </h2>
               <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                আপনার স্টোর সাবডোমেন সক্রিয় করা হয়েছে। এখন আপনি প্রোডাক্ট যুক্ত
-                করতে এবং বিক্রি শুরু করতে পারেন।
+                Your store subdomain is active. You can now add products and
+                start selling.
               </p>
             </div>
 
             {/* Store Preview Link */}
             <div className="rounded-xl border border-border/80 bg-secondary/40 p-4 text-left">
               <span className="text-xs text-muted-foreground font-medium">
-                আপনার স্টোর লিঙ্ক:
+                Your store URL:
               </span>
               <div className="mt-1 flex items-center justify-between gap-2">
                 <a
@@ -269,14 +268,14 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                 className="rounded-xl font-bold cursor-pointer"
               >
                 <RotateCcw className="size-4 mr-1.5" />
-                <span>নতুন স্টোর খুলুন</span>
+                <span>Create Another Store</span>
               </Button>
               <Button
                 type="button"
                 onClick={() => router.push("/dashboard")}
                 className="flex-1 rounded-xl font-bold shadow-md cursor-pointer"
               >
-                <span>ড্যাশবোর্ডে প্রবেশ করুন</span>
+                <span>Go to Dashboard</span>
                 <ArrowRight className="size-4 ml-1.5" />
               </Button>
             </div>

@@ -40,9 +40,9 @@ export function SubdomainPreview({
         </div>
 
         <div className="flex flex-col min-w-0">
-          <span className="text-[11px] font-medium text-muted-foreground font-bengali flex items-center gap-1">
+          <span className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
             <Sparkles className="size-3 text-primary" />
-            আপনার স্টোরের সম্ভাব্য লাইভ লিংক
+            Your store&apos;s live URL
           </span>
           <div className="flex items-center text-xs sm:text-sm font-mono tracking-tight tabular-nums truncate select-all">
             <span className="text-muted-foreground">https://</span>
@@ -57,19 +57,19 @@ export function SubdomainPreview({
       <button
         type="button"
         onClick={handleCopy}
-        title="লিংক কপি করুন"
-        aria-label="সাবডোমেন লিংক কপি করুন"
-        className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-border/60 bg-background/80 px-2.5 py-1 text-xs font-medium text-foreground transition-all duration-150 hover:bg-background hover:text-primary active:scale-95 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring font-bengali shadow-2xs"
+        title="Copy URL"
+        aria-label="Copy subdomain URL"
+        className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-border/60 bg-background/80 px-2.5 py-1 text-xs font-medium text-foreground transition-all duration-150 hover:bg-background hover:text-primary active:scale-95 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring shadow-2xs cursor-pointer"
       >
         {copied ? (
           <>
             <Check className="size-3 text-primary" />
-            <span className="text-[11px]">কপি হয়েছে!</span>
+            <span className="text-[11px]">Copied!</span>
           </>
         ) : (
           <>
             <Copy className="size-3 text-muted-foreground group-hover:text-primary transition-colors" />
-            <span className="text-[11px]">কপি</span>
+            <span className="text-[11px]">Copy</span>
           </>
         )}
       </button>

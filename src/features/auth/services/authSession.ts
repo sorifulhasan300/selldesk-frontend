@@ -26,28 +26,29 @@ export function getAuthSession(): AuthSession | null {
 }
 
 /**
- * Store auth session into client-side storage & sync cookies
+ * Store client-safe user metadata into client-side storage (no raw tokens)
  */
-export function setAuthSession(session: AuthSession): void {
+export function setAuthSession(
+  session: AuthSession | { user: AuthUser; isAuthenticated?: boolean },
+): void {
   if (typeof window === "undefined") {
     return;
   }
 
   try {
-    localStorage.setItem(AUTH_SESSION_STORAGE_KEY, JSON.stringify(session));
-
-    // Set cookie for Next.js middleware / SSR compatibility (7 days expiry)
-    if (session.tokens?.accessToken) {
-      const maxAge = 60 * 60 * 24 * 7;
-      document.cookie = `${AUTH_TOKEN_COOKIE_KEY}=${session.tokens.accessToken}; path=/; max-age=${maxAge}; SameSite=Lax`;
-    }
+    const safeSession = {
+      user: session.user,
+      isAuthenticated:
+        "isAuthenticated" in session ? session.isAuthenticated : true,
+    };
+    localStorage.setItem(AUTH_SESSION_STORAGE_KEY, JSON.stringify(safeSession));
   } catch (error) {
     console.error("Failed to save auth session:", error);
   }
 }
 
 /**
- * Clear current session credentials
+ * Clear current session credentials from client-side storage
  */
 export function clearAuthSession(): void {
   if (typeof window === "undefined") {
@@ -56,7 +57,6 @@ export function clearAuthSession(): void {
 
   try {
     localStorage.removeItem(AUTH_SESSION_STORAGE_KEY);
-    document.cookie = `${AUTH_TOKEN_COOKIE_KEY}=; path=/; max-age=0; SameSite=Lax`;
   } catch (error) {
     console.error("Failed to clear auth session:", error);
   }

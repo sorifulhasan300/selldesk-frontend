@@ -2,93 +2,97 @@ import { AxiosError } from "axios";
 import type { ApiErrorOptions, BackendErrorEnvelope } from "./types";
 
 /**
- * Standard HTTP Status Code to Bengali Message Mappings
+ * Standard HTTP Status Code to Error Message Mappings
  */
-export const HTTP_STATUS_BENGALI_MAP: Record<number, string> = {
-  400: "অনুরোধটি সঠিক নয়। অনুগ্রহ করে তথ্য যাচাই করে পুনরায় চেষ্টা করুন।",
-  401: "আপনার লগইন সেশনের মেয়াদ শেষ হয়েছে। অনুগ্রহ করে আবার লগইন করুন।",
-  403: "এই তথ্য বা ফিচারে প্রবেশ করার জন্য আপনার প্রয়োজনীয় অনুমতি নেই।",
-  404: "অনুরোধ করা তথ্য বা পেজটি খুঁজে পাওয়া যায়নি।",
-  405: "অনুরোধ পদ্ধতি এই রুটে সমর্থিত নয়।",
-  408: "সার্ভার রেসপন্স করতে অতিরিক্ত সময় নিয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।",
-  409: "এই তথ্যটি ইতিমধ্যে বিদ্যমান অথবা অন্য তথ্যের সাথে বিরোধ তৈরি করছে।",
-  413: "ফাইলের আকার অনেক বড়। অনুগ্রহ করে ছোট আকারের ফাইল আপলোড করুন।",
-  422: "প্রদত্ত তথ্যে ভুল রয়েছে। অনুগ্রহ করে ফর্মের ভুলগুলো সংশোধন করুন।",
-  429: "খুব কম সময়ে অতিরিক্ত অনুরোধ করা হয়েছে। কিছুক্ষণ পর আবার চেষ্টা করুন।",
-  500: "সার্ভারে অভ্যন্তরীণ ত্রুটি দেখা দিয়েছে। আমাদের টিম কাজ করছে, কিছুক্ষণ পর চেষ্টা করুন।",
-  502: "গেটওয়ে সার্ভার থেকে কোনো উত্তর পাওয়া যায়নি। সংযোগ পরীক্ষা করুন।",
-  503: "সার্ভার এই মুহূর্তে রক্ষণাবেক্ষণ বা অতিরিক্ত চাপের কারণে অনুপলব্ধ।",
-  504: "গেটওয়ে সার্ভারের সময়সীমা শেষ হয়েছে। পুনরায় চেষ্টা করুন।",
+export const HTTP_STATUS_MESSAGE_MAP: Record<number, string> = {
+  400: "Invalid request. Please check your information and try again.",
+  401: "Your session has expired. Please log in again.",
+  403: "You do not have permission to perform this action.",
+  404: "The requested resource was not found.",
+  405: "HTTP method not supported for this route.",
+  408: "Request timed out. Please try again.",
+  409: "A conflict occurred. The resource may already exist.",
+  413: "File size is too large. Please upload a smaller file.",
+  422: "Validation failed. Please correct the errors and try again.",
+  429: "Too many requests. Please slow down and try again shortly.",
+  500: "Internal server error. Please try again in a few moments.",
+  502: "Bad gateway. Unable to reach server.",
+  503: "Service unavailable. Server is under maintenance or overloaded.",
+  504: "Gateway timeout. Please try again.",
 };
 
+export const HTTP_STATUS_BENGALI_MAP = HTTP_STATUS_MESSAGE_MAP;
+
 /**
- * Common Backend Error Patterns mapped to natural Bengali
+ * Common Backend Error Patterns mapped to natural English messages
  */
-export const BACKEND_MESSAGE_BENGALI_MAP: Array<{
+export const BACKEND_MESSAGE_MAP: Array<{
   pattern: RegExp;
-  bengali: string;
+  message: string;
 }> = [
   {
     pattern: /invalid credentials|invalid email or password|wrong password/i,
-    bengali: "ভুল ইমেইল বা পাসওয়ার্ড। অনুগ্রহ করে সঠিক তথ্য প্রদান করুন।",
+    message: "Invalid email or password. Please try again.",
   },
   {
     pattern: /user not found|account not found/i,
-    bengali: "এই তথ্যের কোনো ব্যবহারকারী বা অ্যাকাউন্ট খুঁজে পাওয়া যায়নি।",
+    message: "No user account was found with these details.",
   },
   {
     pattern: /email already exists|email already in use|email.*taken/i,
-    bengali: "এই ইমেইল এড্রেস দিয়ে ইতিমধ্যে একটি অ্যাকাউন্ট তৈরি করা হয়েছে।",
+    message: "An account with this email address already exists.",
   },
   {
     pattern: /phone.*already exists|phone.*already in use/i,
-    bengali: "এই ফোন নম্বর দিয়ে ইতিমধ্যে একটি অ্যাকাউন্ট নিবন্ধিত রয়েছে।",
+    message: "An account with this phone number already exists.",
   },
   {
     pattern:
       /subdomain.*already taken|subdomain.*already in use|subdomain.*exists/i,
-    bengali:
-      "এই সাবডোমেনটি ইতিমধ্যে অন্য কেউ ব্যবহার করছেন। অন্য নাম নির্বাচন করুন।",
+    message: "This subdomain is already taken. Please choose another one.",
   },
   {
     pattern: /store not found/i,
-    bengali: "নির্দিষ্ট স্টোরটি খুঁজে পাওয়া যায়নি। সাবডোমেন যাচাই করুন।",
+    message: "Store not found. Please verify the subdomain.",
   },
   {
     pattern: /store is suspended|store is inactive/i,
-    bengali:
-      "স্টোরটি সাময়িকভাবে স্থগিত বা নিষ্ক্রিয় রয়েছে। সাপোর্টে যোগাযোগ করুন।",
+    message:
+      "This store is temporarily inactive or suspended. Please contact support.",
   },
   {
     pattern: /subscription expired|plan expired/i,
-    bengali:
-      "আপনার স্টোরের সাবস্ক্রিপশন প্ল্যানের মেয়াদ শেষ হয়েছে। নবায়ন করুন।",
+    message: "Your subscription plan has expired. Please renew to continue.",
   },
   {
     pattern: /jwt expired|token.*expired/i,
-    bengali: "আপনার লগইন সেশনের মেয়াদ শেষ হয়ে গেছে। পুনরায় লগইন করুন।",
+    message: "Your session has expired. Please log in again.",
   },
   {
     pattern: /jwt malformed|invalid token|invalid signature/i,
-    bengali: "লগইন সেশনটি অবৈধ। অনুগ্রহ করে পুনরায় লগইন করুন।",
+    message: "Invalid session token. Please log in again.",
   },
   {
     pattern: /network error|failed to fetch/i,
-    bengali: "ইন্টারনেট সংযোগ বিচ্ছিন্ন অথবা সার্ভারে পৌঁছানো সম্ভব হচ্ছে না।",
+    message: "Network error. Unable to connect to the server.",
   },
   {
     pattern: /timeout of \d+ms exceeded|timeout/i,
-    bengali:
-      "অনুরোধের সময়সীমা পার হয়ে গেছে। আপনার ইন্টারনেট সংযোগ পরীক্ষা করুন।",
+    message: "Request timed out. Please check your connection and try again.",
   },
   {
     pattern: /request aborted|canceled/i,
-    bengali: "অনুরোধটি বাতিল করা হয়েছে।",
+    message: "The request was canceled.",
   },
 ];
 
+export const BACKEND_MESSAGE_BENGALI_MAP = BACKEND_MESSAGE_MAP.map((item) => ({
+  pattern: item.pattern,
+  bengali: item.message,
+}));
+
 /**
- * Formats raw backend error message strings or arrays into idiomatic Bengali
+ * Formats raw backend error message strings or arrays into user-friendly English
  */
 export function formatBengaliErrorMessage(
   statusCode?: number,
@@ -98,44 +102,38 @@ export function formatBengaliErrorMessage(
   if (Array.isArray(rawMessage) && rawMessage.length > 0) {
     const joined = rawMessage.join(", ");
     // Check if any array item matches known patterns
-    for (const rule of BACKEND_MESSAGE_BENGALI_MAP) {
+    for (const rule of BACKEND_MESSAGE_MAP) {
       if (rule.pattern.test(joined)) {
-        return rule.bengali;
+        return rule.message;
       }
     }
-    // If array items are in Bengali, return directly
-    if (/[\u0980-\u09FF]/.test(joined)) {
-      return joined;
-    }
-    // For validation arrays (e.g. class-validator)
-    return "প্রদত্ত তথ্যে ভুল রয়েছে। অনুগ্রহ করে তথ্য যাচাই করে পুনরায় চেষ্টা করুন।";
+    return joined;
   }
 
   // 2. If raw message is a single string
   if (typeof rawMessage === "string" && rawMessage.trim().length > 0) {
     const trimmed = rawMessage.trim();
 
-    // If message is already written in Bengali, preserve it
-    if (/[\u0980-\u09FF]/.test(trimmed)) {
-      return trimmed;
-    }
-
-    // Check against common backend English message patterns
-    for (const rule of BACKEND_MESSAGE_BENGALI_MAP) {
+    // Check against common backend message patterns
+    for (const rule of BACKEND_MESSAGE_MAP) {
       if (rule.pattern.test(trimmed)) {
-        return rule.bengali;
+        return rule.message;
       }
     }
+
+    return trimmed;
   }
 
   // 3. Fall back to HTTP status code mapping
-  if (statusCode && HTTP_STATUS_BENGALI_MAP[statusCode]) {
-    return HTTP_STATUS_BENGALI_MAP[statusCode];
+  if (statusCode && HTTP_STATUS_MESSAGE_MAP[statusCode]) {
+    return HTTP_STATUS_MESSAGE_MAP[statusCode];
   }
 
   // 4. Default general fallback
-  return "একটি অপ্রত্যাশিত ত্রুটি ঘটেছে। অনুগ্রহ করে কিছুক্ষণ পর আবার চেষ্টা করুন।";
+  return "An unexpected error occurred. Please try again.";
 }
+
+export const formatApiErrorMessage = formatBengaliErrorMessage;
 
 /**
  * Custom Error Class representing a structured API error response
@@ -303,7 +301,7 @@ export function parseApiError(error: unknown): ApiError {
  */
 export function getApiErrorMessage(
   error: unknown,
-  fallbackMessage = "একটি সমস্যা দেখা দিয়েছে। অনুগ্রহ করে পুনরায় চেষ্টা করুন।",
+  fallbackMessage = "An unexpected error occurred. Please try again.",
 ): string {
   if (!error) return fallbackMessage;
 

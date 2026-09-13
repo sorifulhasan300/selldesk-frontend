@@ -13,31 +13,32 @@ export const registerSchema = z.object({
   fullName: z
     .string()
     .trim()
-    .min(3, { message: "আপনার সম্পূর্ণ নাম লিখুন" })
-    .max(50, { message: "নাম সর্বোচ্চ ৫০ অক্ষরের হতে পারে" }),
+    .min(3, { message: "Name must be at least 3 characters long" })
+    .max(50, { message: "Name cannot exceed 50 characters" }),
   email: z
     .string()
     .trim()
     .toLowerCase()
-    .min(1, { message: "সঠিক ইমেইল এড্রেস দিন" })
-    .email({ message: "সঠিক ইমেইল এড্রেস দিন" }),
+    .min(1, { message: "Email is required" })
+    .email({ message: "Please enter a valid email address" }),
   phone: z.string().trim().regex(BD_PHONE_REGEX, {
-    message: "সঠিক বাংলাদেশী মোবাইল নম্বর দিন",
+    message:
+      "Please enter a valid Bangladeshi mobile number (e.g., 017XXXXXXXX)",
   }),
   password: z
     .string()
-    .min(8, { message: "পাসওয়ার্ড অন্তত ৮ অক্ষরের হতে হবে" })
+    .min(8, { message: "Password must be at least 8 characters long" })
     .regex(/[A-Z]/, {
-      message: "পাসওয়ার্ডে অন্তত একটি বড় হাতের অক্ষর (A-Z) থাকতে হবে",
+      message: "Password must contain at least one uppercase letter (A-Z)",
     })
     .regex(/[a-z]/, {
-      message: "পাসওয়ার্ডে অন্তত একটি ছোট হাতের অক্ষর (a-z) থাকতে হবে",
+      message: "Password must contain at least one lowercase letter (a-z)",
     })
     .regex(/[0-9]/, {
-      message: "পাসওয়ার্ডে অন্তত একটি সংখ্যা (0-9) থাকতে হবে",
+      message: "Password must contain at least one number (0-9)",
     }),
   agreeTerms: z.boolean().refine((val) => val === true, {
-    message: "শর্তাবলী গ্রহণ করা আবশ্যক",
+    message: "You must accept the terms and conditions",
   }),
   avatarUrl: z.string().optional().or(z.literal("")),
   avatarPublicId: z.string().optional().or(z.literal("")),

@@ -1,17 +1,8 @@
 import type { Metadata } from "next";
-import { Hind_Siliguri } from "next/font/google";
-import { cn } from "@/lib/utils";
-
-const hindSiliguri = Hind_Siliguri({
-  subsets: ["bengali", "latin"],
-  weight: ["400", "600", "700"],
-  display: "swap",
-  variable: "--font-hind",
-});
 
 export const metadata: Metadata = {
-  title: "স্টোর সেটআপ ও অনবোর্ডিং | SellDesk",
-  description: "সহজ ৩টি ধাপে আপনার নিজস্ব অনলাইন স্টোর তৈরি ও শুরু করুন।",
+  title: "Store Setup & Onboarding | SellDesk",
+  description: "Create and launch your online store in 3 simple steps.",
 };
 
 export default function OnboardingLayout({
@@ -20,13 +11,6 @@ export default function OnboardingLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div
-      className={cn(
-        "min-h-screen bg-background text-foreground",
-        hindSiliguri.variable,
-      )}
-    >
-      {children}
-    </div>
+    <div className="min-h-screen bg-background text-foreground">{children}</div>
   );
 }

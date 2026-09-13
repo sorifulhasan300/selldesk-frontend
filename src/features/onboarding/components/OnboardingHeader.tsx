@@ -12,16 +12,16 @@ interface OnboardingHeaderProps {
 
 const STEP_LABELS: Record<number, { title: string; subtitle: string }> = {
   1: {
-    title: "স্টোরের পরিচিতি",
-    subtitle: "মৌলিক তথ্য ও সাবডোমেন",
+    title: "Store Identity",
+    subtitle: "Basic Info & Subdomain",
   },
   2: {
-    title: "ব্যবসার বিবরণ",
-    subtitle: "পণ্য ও বিক্রির রূপরেখা",
+    title: "Business Details",
+    subtitle: "Products & Sales Structure",
   },
   3: {
-    title: "ব্র্যান্ডিং মিডিয়া",
-    subtitle: "লোগো ও ব্যানার কালেকশন",
+    title: "Branding Assets",
+    subtitle: "Logo & Banner Assets",
   },
 };
 
@@ -50,7 +50,7 @@ export function OnboardingHeader({
 
         {/* Step Progress Info */}
         <div className="mt-3 flex w-full max-w-md flex-col items-center">
-          <div className="flex w-full items-center justify-between text-xs sm:text-sm font-bengali">
+          <div className="flex w-full items-center justify-between text-xs sm:text-sm">
             <span className="font-medium text-muted-foreground">
               Step {currentStep} of {totalSteps}:{" "}
               <strong className="font-semibold text-foreground">
@@ -69,7 +69,7 @@ export function OnboardingHeader({
             aria-valuenow={progressPercent}
             aria-valuemin={0}
             aria-valuemax={100}
-            aria-label={`অনবোর্ডিং প্রগ্রেস: ${progressPercent}%`}
+            aria-label={`Onboarding progress: ${progressPercent}%`}
           >
             <div
               className="h-full bg-primary transition-all duration-500 ease-out rounded-full"
@@ -84,10 +84,7 @@ export function OnboardingHeader({
               const isCurrent = step === currentStep;
 
               return (
-                <div
-                  key={step}
-                  className="flex items-center gap-1.5 text-xs font-bengali"
-                >
+                <div key={step} className="flex items-center gap-1.5 text-xs">
                   <div
                     className={cn(
                       "flex size-5 items-center justify-center rounded-full text-[10px] font-semibold transition-all duration-300 font-mono",

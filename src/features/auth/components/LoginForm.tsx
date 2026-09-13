@@ -49,10 +49,10 @@ export function LoginForm() {
         if (!result.success) {
           // Check if failure is due to unverified email address
           if (result.requiresVerification && result.email) {
-            toast.warning("ইমেইল ভেরিফাই করা প্রয়োজন", {
+            toast.warning("Email verification required", {
               description:
                 result.message ||
-                "আপনার অ্যাকাউন্টটি এখনও ভেরিফাই করা হয়নি। অনুগ্রহ করে ওটিপি দিয়ে ভেরিফাই করুন।",
+                "Your account is not verified yet. Please verify using the OTP sent to your email.",
             });
             router.push(
               `/verify-email?email=${encodeURIComponent(result.email)}`,
@@ -60,28 +60,25 @@ export function LoginForm() {
             return;
           }
 
-          toast.error("লগইন ব্যর্থ হয়েছে", {
+          toast.error("Login failed", {
             description:
               result.message ||
               result.error ||
-              "ইমেইল/মোবাইল নম্বর অথবা পাসওয়ার্ড সঠিক নয়। পুনরায় চেষ্টা করুন।",
+              "Invalid email/phone or password. Please try again.",
           });
           return;
         }
 
         // 2. Synchronize active session with client-side reactive store
-        if (result.user && result.token) {
-          setAuth({
-            user: result.user,
-            token: result.token,
-          });
+        if (result.user) {
+          setAuth(result.user);
         }
 
         // 3. User feedback toast
-        toast.success(result.message || "লগইন সফল হয়েছে!", {
+        toast.success(result.message || "Login successful!", {
           description: result.hasStore
-            ? "ড্যাশবোর্ডে নিয়ে যাওয়া হচ্ছে..."
-            : "স্টোর অনবোর্ডিং পেজে নিয়ে যাওয়া হচ্ছে...",
+            ? "Redirecting to dashboard..."
+            : "Redirecting to store setup...",
         });
 
         // 4. Resolve destination and navigate immediately
@@ -94,9 +91,9 @@ export function LoginForm() {
         const errorMessage =
           error instanceof Error
             ? error.message
-            : "লগইন প্রক্রিয়া সম্পন্ন করা সম্ভব হয়নি। অনুগ্রহ করে আবার চেষ্টা করুন।";
+            : "Unable to complete login. Please try again.";
 
-        toast.error("লগইন ত্রুটি", {
+        toast.error("Login Error", {
           description: errorMessage,
         });
       }
@@ -104,11 +101,7 @@ export function LoginForm() {
   };
 
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      noValidate
-      className="space-y-4 font-bengali"
-    >
+    <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
       {/* Email or Phone Number Field */}
       <div className="space-y-1.5">
         <label
@@ -116,14 +109,14 @@ export function LoginForm() {
           className="flex items-center gap-1.5 text-xs font-semibold text-foreground"
         >
           <Mail className="size-3.5 text-primary" />
-          <span>ইমেইল অথবা মোবাইল নম্বর</span>
+          <span>Email or Phone Number</span>
           <span className="text-destructive">*</span>
         </label>
         <div className="relative">
           <input
             id="emailOrPhone"
             type="text"
-            placeholder="example@selldesk.com অথবা 017XXXXXXXX"
+            placeholder="example@selldesk.com or 017XXXXXXXX"
             autoComplete="username email tel"
             disabled={isPending}
             {...register("emailOrPhone")}
@@ -150,21 +143,21 @@ export function LoginForm() {
             className="flex items-center gap-1.5 text-xs font-semibold text-foreground"
           >
             <Lock className="size-3.5 text-primary" />
-            <span>পাসওয়ার্ড</span>
+            <span>Password</span>
             <span className="text-destructive">*</span>
           </label>
           <Link
             href="/forgot-password"
             className="text-xs font-medium text-primary hover:underline transition-colors cursor-pointer"
           >
-            পাসওয়ার্ড ভুলে গেছেন?
+            Forgot password?
           </Link>
         </div>
         <div className="relative">
           <input
             id="password"
             type={showPassword ? "text" : "password"}
-            placeholder="আপনার পাসওয়ার্ড দিন"
+            placeholder="Enter your password"
             autoComplete="current-password"
             disabled={isPending}
             {...register("password")}
@@ -180,7 +173,7 @@ export function LoginForm() {
             tabIndex={-1}
             disabled={isPending}
             className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-muted-foreground hover:text-foreground focus:outline-hidden transition-colors cursor-pointer"
-            aria-label={showPassword ? "পাসওয়ার্ড লুকান" : "পাসওয়ার্ড দেখুন"}
+            aria-label={showPassword ? "Hide password" : "Show password"}
           >
             {showPassword ? (
               <EyeOff className="size-4" />
@@ -207,7 +200,7 @@ export function LoginForm() {
             className="size-4 rounded-sm border-border text-primary focus:ring-primary focus:ring-offset-background accent-primary cursor-pointer transition-colors"
           />
           <span className="text-xs text-muted-foreground hover:text-foreground transition-colors">
-            আমাকে মনে রাখুন
+            Remember me
           </span>
         </label>
       </div>
@@ -222,11 +215,11 @@ export function LoginForm() {
           {isPending ? (
             <>
               <Loader2 className="size-4 animate-spin" />
-              <span>লগইন করা হচ্ছে...</span>
+              <span>Signing in...</span>
             </>
           ) : (
             <>
-              <span>লগইন করুন 🔑</span>
+              <span>Sign In 🔑</span>
               <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-1" />
             </>
           )}
@@ -236,7 +229,7 @@ export function LoginForm() {
       {/* Trust & Security Guarantee Badge */}
       <div className="flex items-center justify-center gap-1.5 pt-1 text-[11px] text-muted-foreground">
         <ShieldCheck className="size-3.5 text-primary" />
-        <span>আপনার সমস্ত তথ্য সম্পূর্ণ এনক্রিপ্টেড এবং নিরাপদ</span>
+        <span>All your data is fully encrypted and secure</span>
       </div>
     </form>
   );
