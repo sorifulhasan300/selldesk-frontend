@@ -3,6 +3,7 @@
 import React, { useState, useRef } from "react";
 import { Upload, X, Loader2, Image as ImageIcon, Sparkles } from "lucide-react";
 import { uploadImageAction } from "@/shared/actions/uploadActions";
+import { fileToDataUrl } from "../hooks/useOnboardingStore";
 import { toast } from "sonner";
 
 export interface StoreBrandingUploadProps {
@@ -39,6 +40,15 @@ export function StoreBrandingUpload({
 
     try {
       setIsUploadingLogo(true);
+
+      // Instant base64 preview for immediate feedback and local storage resilience
+      try {
+        const base64Preview = await fileToDataUrl(file);
+        onLogoChange(base64Preview, "");
+      } catch {
+        // Safe fallback
+      }
+
       const formData = new FormData();
       formData.append("file", file);
 
@@ -72,6 +82,17 @@ export function StoreBrandingUpload({
 
     try {
       setIsUploadingBanner(true);
+
+      // Instant base64 preview for immediate feedback and local storage resilience
+      try {
+        const base64Preview = await fileToDataUrl(file);
+        if (onBannerChange) {
+          onBannerChange(base64Preview, "");
+        }
+      } catch {
+        // Safe fallback
+      }
+
       const formData = new FormData();
       formData.append("file", file);
 

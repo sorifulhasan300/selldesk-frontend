@@ -15,7 +15,11 @@ import {
 import {
   useOnboardingStore,
   useIsHydrated,
-} from "../hooks/useOnboardingStorage";
+  getStoredOnboardingDraft,
+  setStoredOnboardingDraft,
+  clearOnboardingDraft,
+  sanitizeFormData,
+} from "../hooks/useOnboardingStore";
 import { createStoreAction } from "../actions/storeActions";
 import { useTenantStore } from "@/features/tenant/stores/useTenantStore";
 import { OnboardingProgressStepper } from "./OnboardingProgressStepper";
@@ -24,14 +28,54 @@ import { StoreBrandingUpload } from "./StoreBrandingUpload";
 import { SubdomainInputField } from "./SubdomainInputField";
 import { CategorySelectCards } from "./CategorySelectCards";
 import { ProductTypeSelectCards } from "./ProductTypeSelectCards";
+import { SellingStatusSelectCards } from "./SellingStatusSelectCards";
+import { RevenueTierSelectCards } from "./RevenueTierSelectCards";
 
-export function OnboardingWizard() {
+function OnboardingWizardForm() {
   const router = useRouter();
-  const isHydrated = useIsHydrated();
-  const { formData, setFormData, resetOnboarding } = useOnboardingStore();
+  const currentStep = useOnboardingStore((s) => s.currentStep);
+  const setStep = useOnboardingStore((s) => s.setStep);
+  const isSubdomainManuallyEdited = useOnboardingStore(
+    (s) => s.isSubdomainManuallyEdited,
+  );
+  const setIsSubdomainManuallyEdited = useOnboardingStore(
+    (s) => s.setIsSubdomainManuallyEdited,
+  );
+  const resetOnboarding = useOnboardingStore((s) => s.resetOnboarding);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubdomainManuallyEdited, setIsSubdomainManuallyEdited] =
-    useState(false);
+  const [isCompleted, setIsCompleted] = useState(false);
+
+  // Compute rehydrated initial draft values from localStorage (selldesk_onboarding_draft_v2) & Zustand
+  const initialData = React.useMemo(() => {
+    const storedDraft = getStoredOnboardingDraft();
+    const storeState = useOnboardingStore.getState();
+    const merged: OnboardingFormData = {
+      ...defaultOnboardingValues,
+      ...storeState.formData,
+      ...(storedDraft?.formData || {}),
+    };
+
+    const pkgId =
+      merged.packageId ||
+      merged.selectedPackageId ||
+      defaultOnboardingValues.packageId ||
+      "free-trial";
+    merged.packageId = pkgId;
+    merged.selectedPackageId = pkgId;
+
+    const isManual =
+      storedDraft?.isSubdomainManuallyEdited ??
+      storeState.isSubdomainManuallyEdited ??
+      (Boolean(merged.storeName) &&
+        Boolean(merged.subDomain) &&
+        merged.subDomain !== generateSubdomainSlug(merged.storeName));
+
+    return {
+      formData: merged,
+      isManualSubdomain: Boolean(isManual),
+    };
+  }, []);
 
   const {
     register,
@@ -42,101 +86,79 @@ export function OnboardingWizard() {
     formState: { errors },
   } = useForm<OnboardingFormData>({
     resolver: zodResolver(onboardingFormSchema),
-    defaultValues: {
-      ...defaultOnboardingValues,
-      ...formData,
-      packageId:
-        formData?.packageId ||
-        formData?.selectedPackageId ||
-        defaultOnboardingValues.packageId ||
-        "free-trial",
-      selectedPackageId:
-        formData?.selectedPackageId ||
-        formData?.packageId ||
-        defaultOnboardingValues.selectedPackageId ||
-        "free-trial",
-      packageName:
-        formData?.packageName ||
-        defaultOnboardingValues.packageName ||
-        "Free Trial",
-      packagePrice:
-        formData?.packagePrice ?? defaultOnboardingValues.packagePrice ?? 0,
-      industryCategory:
-        formData?.industryCategory ||
-        defaultOnboardingValues.industryCategory ||
-        "Fashion & Apparel",
-      productType:
-        formData?.productType ||
-        defaultOnboardingValues.productType ||
-        "PHYSICAL",
-      storeName: formData?.storeName || "",
-      subDomain: formData?.subDomain || "",
-      storePhone: formData?.storePhone || "",
-      logo: formData?.logo || "",
-      banner: formData?.banner || "",
-      logoUrl: formData?.logoUrl || "",
-      logoPublicId: formData?.logoPublicId || "",
-      bannerUrl: formData?.bannerUrl || "",
-      bannerPublicId: formData?.bannerPublicId || "",
-    },
+    defaultValues: initialData.formData,
     mode: "onTouched",
   });
 
-  const storeName = useWatch({ control, name: "storeName" });
-  const subDomain = useWatch({ control, name: "subDomain" });
-  const industryCategory = useWatch({ control, name: "industryCategory" });
-  const productType = useWatch({ control, name: "productType" });
-  const logoUrl = useWatch({ control, name: "logoUrl" });
-  const logoPublicId = useWatch({ control, name: "logoPublicId" });
-  const bannerUrl = useWatch({ control, name: "bannerUrl" });
-  const bannerPublicId = useWatch({ control, name: "bannerPublicId" });
+  const allFormValues = useWatch({ control });
+  const storeName = allFormValues?.storeName;
+  const subDomain = allFormValues?.subDomain;
+  const industryCategory = allFormValues?.industryCategory;
+  const productType = allFormValues?.productType;
+  const sellingStatus = allFormValues?.sellingStatus;
+  const currentRevenue = allFormValues?.currentRevenue;
+  const logoUrl = allFormValues?.logoUrl;
+  const logoPublicId = allFormValues?.logoPublicId;
+  const bannerUrl = allFormValues?.bannerUrl;
+  const bannerPublicId = allFormValues?.bannerPublicId;
+  const packageName = allFormValues?.packageName;
+  const packagePrice = allFormValues?.packagePrice;
 
-  // Sync state from onboarding store on hydration
+  // Initialize step & manual subdomain preference on mount
   useEffect(() => {
-    if (formData) {
-      const pkgId =
-        formData.packageId || formData.selectedPackageId || "free-trial";
-      setValue("packageId", pkgId);
-      setValue("selectedPackageId", pkgId);
-      if (formData.packageName) setValue("packageName", formData.packageName);
-      if (formData.packagePrice !== undefined)
-        setValue("packagePrice", formData.packagePrice);
-      if (formData.storePhone && !getValues("storePhone")) {
-        setValue("storePhone", formData.storePhone);
-      }
-      if (formData.industryCategory && !getValues("industryCategory")) {
-        setValue("industryCategory", formData.industryCategory);
-      }
-      if (formData.productType && !getValues("productType")) {
-        setValue("productType", formData.productType);
-      }
+    if (initialData.isManualSubdomain) {
+      setIsSubdomainManuallyEdited(true);
     }
-  }, [formData, setValue, getValues]);
+    setStep(4);
+  }, [initialData.isManualSubdomain, setIsSubdomainManuallyEdited, setStep]);
+
+  // Real-time form persistence: watch and auto-sync changes to localStorage & Zustand
+  useEffect(() => {
+    if (isCompleted || !allFormValues) return;
+
+    const sanitized = sanitizeFormData(
+      allFormValues as Partial<OnboardingFormData>,
+    );
+
+    // Update Zustand store
+    useOnboardingStore.getState().setFormData(sanitized);
+
+    // Persist directly to localStorage under selldesk_onboarding_draft_v2
+    setStoredOnboardingDraft(
+      {
+        ...useOnboardingStore.getState().formData,
+        ...sanitized,
+      },
+      4,
+      useOnboardingStore.getState().isSubdomainManuallyEdited,
+    );
+  }, [allFormValues, isCompleted]);
 
   // Auto-Sync: As merchant types storeName, slugify into subDomain unless manually edited
   useEffect(() => {
     if (!isSubdomainManuallyEdited && storeName) {
       const slug = generateSubdomainSlug(storeName);
-      setValue("subDomain", slug, {
-        shouldValidate: true,
-      });
+      if (getValues("subDomain") !== slug) {
+        setValue("subDomain", slug, {
+          shouldValidate: true,
+          shouldDirty: true,
+        });
+      }
     }
-  }, [storeName, isSubdomainManuallyEdited, setValue]);
+  }, [storeName, isSubdomainManuallyEdited, setValue, getValues]);
 
   const handleSyncWithStoreName = () => {
     setIsSubdomainManuallyEdited(false);
     if (storeName) {
       const slug = generateSubdomainSlug(storeName);
-      setValue("subDomain", slug, { shouldValidate: true });
+      setValue("subDomain", slug, { shouldValidate: true, shouldDirty: true });
       toast.success("Subdomain synced with Store Name");
     }
   };
 
   const onError = (fieldErrors: typeof errors) => {
-    // 1. Console debugging: Log all validation errors directly to console
     console.log("Validation Errors:", fieldErrors);
 
-    // 2. Visual feedback: Trigger sonner toast showing which required field is missing/invalid
     const errorEntries = Object.entries(fieldErrors);
     if (errorEntries.length > 0) {
       const [firstKey, firstError] = errorEntries[0];
@@ -149,6 +171,8 @@ export function OnboardingWizard() {
         subDomain: "Subdomain",
         storePhone: "Merchant Support Phone",
         productType: "Product Type",
+        sellingStatus: "Selling Stage",
+        currentRevenue: "Estimated Monthly Revenue",
         industryCategory: "Store Category",
         packageId: "Package Selection",
         selectedPackageId: "Package Selection",
@@ -168,22 +192,23 @@ export function OnboardingWizard() {
   const onSubmit = async (data: OnboardingFormData) => {
     try {
       setIsSubmitting(true);
+      const currentStoreData = useOnboardingStore.getState().formData;
       const submissionData: OnboardingFormData = {
         ...data,
         packageId:
           data.packageId ||
           data.selectedPackageId ||
-          formData.packageId ||
-          formData.selectedPackageId ||
+          currentStoreData.packageId ||
+          currentStoreData.selectedPackageId ||
           "free-trial",
         selectedPackageId:
           data.selectedPackageId ||
           data.packageId ||
-          formData.selectedPackageId ||
-          formData.packageId ||
+          currentStoreData.selectedPackageId ||
+          currentStoreData.packageId ||
           "free-trial",
       };
-      setFormData(submissionData);
+
       const result = await createStoreAction(submissionData);
       if (!result.success) {
         toast.error("Store creation failed", {
@@ -192,10 +217,17 @@ export function OnboardingWizard() {
         return;
       }
 
+      // Mark completed to halt auto-saving
+      setIsCompleted(true);
+
       if (result.store) {
         useTenantStore.getState().setTenant(result.store);
       }
+
+      // 3. Auto-Clean on Successful Submission: clear selldesk_onboarding_draft_v2
       resetOnboarding();
+      clearOnboardingDraft();
+
       toast.success("Store created successfully! 🎉");
 
       const targetUrl = result.redirectUrl || "/dashboard";
@@ -215,22 +247,10 @@ export function OnboardingWizard() {
     }
   };
 
-  if (!isHydrated) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[#F8F9FC] p-4">
-        <div className="w-full max-w-lg animate-pulse rounded-2xl border border-[#E2E8F0] bg-white p-8 space-y-4 shadow-sm">
-          <div className="h-6 w-1/3 bg-[#E2E8F0] rounded-md" />
-          <div className="h-10 w-full bg-[#E2E8F0] rounded-md" />
-          <div className="h-28 w-full bg-[#E2E8F0] rounded-md" />
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-[#F8F9FC] text-[#0F172A] flex flex-col">
       {/* 1. Global Sticky Onboarding Stepper Header (Step 4: Store Setup) */}
-      <OnboardingProgressStepper currentStep={4} />
+      <OnboardingProgressStepper currentStep={currentStep || 4} />
 
       <main className="flex-1 py-8 sm:py-12 px-4 sm:px-6">
         <div className="max-w-2xl mx-auto space-y-6">
@@ -261,6 +281,8 @@ export function OnboardingWizard() {
                     "subDomain",
                     "industryCategory",
                     "productType",
+                    "sellingStatus",
+                    "currentRevenue",
                     "storePhone",
                   ].includes(key),
               ) && (
@@ -277,6 +299,8 @@ export function OnboardingWizard() {
                               "subDomain",
                               "industryCategory",
                               "productType",
+                              "sellingStatus",
+                              "currentRevenue",
                               "storePhone",
                             ].includes(k),
                         )
@@ -293,6 +317,8 @@ export function OnboardingWizard() {
               <input type="hidden" {...register("packageName")} />
               <input type="hidden" {...register("subDomain")} />
               <input type="hidden" {...register("productType")} />
+              <input type="hidden" {...register("sellingStatus")} />
+              <input type="hidden" {...register("currentRevenue")} />
               <input type="hidden" {...register("industryCategory")} />
               <input type="hidden" {...register("logoUrl")} />
               <input type="hidden" {...register("logoPublicId")} />
@@ -301,8 +327,8 @@ export function OnboardingWizard() {
 
               {/* Selected Plan Summary Banner */}
               <StorePlanSummary
-                packageName={formData.packageName}
-                packagePrice={formData.packagePrice}
+                packageName={packageName || "Free Trial"}
+                packagePrice={packagePrice ?? 0}
               />
 
               {/* Store Name Input */}
@@ -371,6 +397,26 @@ export function OnboardingWizard() {
                 error={errors.productType?.message}
               />
 
+              {/* 4. Interactive Selling Stage Select Cards */}
+              <SellingStatusSelectCards
+                value={sellingStatus}
+                onChange={(status) =>
+                  setValue("sellingStatus", status, { shouldValidate: true })
+                }
+                disabled={isSubmitting}
+                error={errors.sellingStatus?.message}
+              />
+
+              {/* 5. Interactive Estimated Monthly Revenue Select Cards */}
+              <RevenueTierSelectCards
+                value={currentRevenue}
+                onChange={(tier) =>
+                  setValue("currentRevenue", tier, { shouldValidate: true })
+                }
+                disabled={isSubmitting}
+                error={errors.currentRevenue?.message}
+              />
+
               {/* Support Phone Number */}
               <div className="space-y-1.5">
                 <label
@@ -420,6 +466,20 @@ export function OnboardingWizard() {
                     shouldValidate: true,
                     shouldDirty: true,
                   });
+                  // Immediately persist to draft storage
+                  useOnboardingStore.getState().setFormData({
+                    logoUrl: url,
+                    logoPublicId: publicId || "",
+                  });
+                  setStoredOnboardingDraft(
+                    {
+                      ...getValues(),
+                      logoUrl: url,
+                      logoPublicId: publicId || "",
+                    },
+                    4,
+                    isSubdomainManuallyEdited,
+                  );
                 }}
                 onBannerChange={(url, publicId) => {
                   setValue("bannerUrl", url, {
@@ -430,6 +490,20 @@ export function OnboardingWizard() {
                     shouldValidate: true,
                     shouldDirty: true,
                   });
+                  // Immediately persist to draft storage
+                  useOnboardingStore.getState().setFormData({
+                    bannerUrl: url,
+                    bannerPublicId: publicId || "",
+                  });
+                  setStoredOnboardingDraft(
+                    {
+                      ...getValues(),
+                      bannerUrl: url,
+                      bannerPublicId: publicId || "",
+                    },
+                    4,
+                    isSubdomainManuallyEdited,
+                  );
                 }}
                 disabled={isSubmitting}
               />
@@ -463,4 +537,22 @@ export function OnboardingWizard() {
       </main>
     </div>
   );
+}
+
+export function OnboardingWizard() {
+  const isHydrated = useIsHydrated();
+
+  if (!isHydrated) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#F8F9FC] p-4">
+        <div className="w-full max-w-lg animate-pulse rounded-2xl border border-[#E2E8F0] bg-white p-8 space-y-4 shadow-sm">
+          <div className="h-6 w-1/3 bg-[#E2E8F0] rounded-md" />
+          <div className="h-10 w-full bg-[#E2E8F0] rounded-md" />
+          <div className="h-28 w-full bg-[#E2E8F0] rounded-md" />
+        </div>
+      </div>
+    );
+  }
+
+  return <OnboardingWizardForm />;
 }
