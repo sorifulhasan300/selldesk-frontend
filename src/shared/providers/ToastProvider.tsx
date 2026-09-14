@@ -13,6 +13,24 @@ export interface ToastProviderProps extends ToasterProps {
  * Can be used as a standalone Toaster or as a wrapper component around layout children.
  */
 export function ToastProvider({ children, ...props }: ToastProviderProps) {
+  React.useEffect(() => {
+    const handleDevToolsError = (event: ErrorEvent) => {
+      // Suppress known Chrome DevTools Live-Metrics / Soft-Navigation internal script crashes
+      if (
+        event.message?.includes("reading 'startTime'") ||
+        event.message?.includes("reportAllChanges")
+      ) {
+        event.stopImmediatePropagation();
+        event.preventDefault();
+      }
+    };
+
+    window.addEventListener("error", handleDevToolsError);
+    return () => {
+      window.removeEventListener("error", handleDevToolsError);
+    };
+  }, []);
+
   return (
     <>
       {children}

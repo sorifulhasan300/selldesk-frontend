@@ -121,6 +121,20 @@ export const UPLOAD = {
       : "/upload/multiple",
 } as const;
 
+export const SUBSCRIPTIONS = {
+  /**
+   * List all active SaaS subscription plans
+   * GET /api/v1/subscriptions/plans
+   */
+  PLANS: "/subscriptions/plans",
+
+  /**
+   * Get current active subscription
+   * GET /api/v1/subscriptions/current
+   */
+  CURRENT: "/subscriptions/current",
+} as const;
+
 /**
  * Combined API Endpoints map
  */
@@ -128,6 +142,7 @@ export const API_ENDPOINTS = {
   AUTH,
   TENANTS,
   UPLOAD,
+  SUBSCRIPTIONS,
 } as const;
 
 export default API_ENDPOINTS;

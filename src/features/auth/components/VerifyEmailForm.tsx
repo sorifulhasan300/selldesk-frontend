@@ -253,19 +253,18 @@ export function VerifyEmailForm({ initialEmail }: VerifyEmailFormProps) {
         <button
           type="submit"
           disabled={isPending || !otpValue || otpValue.length !== 6}
-          className="group relative flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-md transition-all duration-200 hover:bg-primary/90 hover:shadow-lg active:scale-[0.98] disabled:pointer-events-none disabled:opacity-60 cursor-pointer"
+          className="w-full bg-[#0F172A] hover:bg-[#1E293B] text-white font-medium pl-6 pr-1.5 py-1.5 rounded-full inline-flex items-center justify-between transition-transform active:scale-95 disabled:opacity-60 cursor-pointer shadow-sm"
         >
-          {isPending ? (
-            <>
-              <Loader2 className="size-4 animate-spin" />
-              <span>Verifying...</span>
-            </>
-          ) : (
-            <>
-              <span>Verify Email & Continue</span>
-              <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-1" />
-            </>
-          )}
+          <span className="text-sm font-semibold">
+            {isPending ? "Verifying..." : "Verify Email & Continue"}
+          </span>
+          <span className="w-8 h-8 rounded-full bg-[#7C5CFC] text-white flex items-center justify-center shadow-xs">
+            {isPending ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <ArrowRight className="w-4 h-4" />
+            )}
+          </span>
         </button>
       </div>
 

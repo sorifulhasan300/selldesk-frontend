@@ -74,14 +74,13 @@ export function HeroSection() {
               </Link>
 
               <Link
-                href="/register"
-                className={cn(
-                  buttonVariants({ variant: "default", size: "lg" }),
-                  "rounded-lg px-7 text-sm font-bold shadow-xs",
-                )}
+                href="/plans"
+                className="bg-[#0F172A] hover:bg-[#1E293B] text-white font-medium pl-6 pr-1.5 py-1.5 rounded-full inline-flex items-center gap-3 transition-transform active:scale-95 shadow-md"
               >
-                শুরু করুন
-                <ArrowRight className="size-4 ml-1.5" />
+                <span>শুরু করুন</span>
+                <span className="w-8 h-8 rounded-full bg-[#7C5CFC] text-white flex items-center justify-center">
+                  <ArrowRight className="w-4 h-4" />
+                </span>
               </Link>
             </div>
           </div>

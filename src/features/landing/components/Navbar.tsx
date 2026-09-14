@@ -2,10 +2,9 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Menu, X, ShoppingBag } from "lucide-react";
+import { Menu, X, ShoppingBag, ArrowRight } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { env } from "@/config/env";
 
 const NAV_LINKS = [
   { label: "ফিচার", href: "#features" },
@@ -66,13 +65,13 @@ export function Navbar() {
               লগইন
             </Link>
             <Link
-              href="/register"
-              className={cn(
-                buttonVariants({ variant: "default", size: "sm" }),
-                "rounded-lg px-4 font-bold shadow-xs",
-              )}
+              href="/plans"
+              className="bg-[#0F172A] hover:bg-[#1E293B] text-white text-xs font-medium pl-4 pr-1 py-1 rounded-full inline-flex items-center gap-2 transition-transform active:scale-95 shadow-xs"
             >
-              এখনি শুরু করুন
+              <span>এখনি শুরু করুন</span>
+              <span className="w-6 h-6 rounded-full bg-[#7C5CFC] text-white flex items-center justify-center">
+                <ArrowRight className="w-3.5 h-3.5" />
+              </span>
             </Link>
           </div>
 
@@ -159,14 +158,14 @@ export function Navbar() {
             লগইন
           </Link>
           <Link
-            href="/register"
+            href="/plans"
             onClick={() => setIsOpen(false)}
-            className={cn(
-              buttonVariants({ variant: "default", size: "sm" }),
-              "w-full justify-center text-sm font-bold shadow-xs",
-            )}
+            className="w-full bg-[#0F172A] hover:bg-[#1E293B] text-white text-sm font-medium pl-6 pr-1.5 py-1.5 rounded-full inline-flex items-center justify-between transition-transform active:scale-95 shadow-xs"
           >
-            এখনি শুরু করুন
+            <span>এখনি শুরু করুন</span>
+            <span className="w-8 h-8 rounded-full bg-[#7C5CFC] text-white flex items-center justify-center">
+              <ArrowRight className="w-4 h-4" />
+            </span>
           </Link>
         </div>
       </aside>

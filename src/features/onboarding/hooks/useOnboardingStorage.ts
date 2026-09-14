@@ -12,6 +12,11 @@ interface OnboardingState {
   currentStep: number;
   formData: OnboardingFormData;
   setStep: (step: number) => void;
+  setPackage: (
+    packageId: string,
+    packageName?: string,
+    packagePrice?: number,
+  ) => void;
   setFormData: (data: Partial<OnboardingFormData>) => void;
   resetOnboarding: () => void;
 }
@@ -22,6 +27,16 @@ export const useOnboardingStore = create<OnboardingState>()(
       currentStep: 1,
       formData: defaultOnboardingValues,
       setStep: (step: number) => set({ currentStep: step }),
+      setPackage: (packageId, packageName, packagePrice) =>
+        set((state) => ({
+          formData: {
+            ...state.formData,
+            packageId,
+            selectedPackageId: packageId,
+            ...(packageName !== undefined && { packageName }),
+            ...(packagePrice !== undefined && { packagePrice }),
+          },
+        })),
       setFormData: (data) =>
         set((state) => ({
           formData: { ...state.formData, ...data },
@@ -33,12 +48,11 @@ export const useOnboardingStore = create<OnboardingState>()(
         }),
     }),
     {
-      name: "selldesk_onboarding_draft_v2",
+      name: "selldesk_onboarding_v4",
     },
   ),
 );
 
-// React 19 / Next.js safe hydration detection without cascading render warnings
 const emptySubscribe = () => () => {};
 export function useIsHydrated(): boolean {
   return useSyncExternalStore(

@@ -4,7 +4,7 @@ import type { NextRequest } from "next/server";
 /**
  * Route Configuration Constants
  */
-const PROTECTED_PREFIXES = ["/onboarding", "/dashboard"];
+const PROTECTED_PREFIXES = ["/dashboard", "/onboarding"];
 const AUTH_ROUTES = ["/login", "/register"];
 
 const AUTH_COOKIE_NAME = "auth_token";
@@ -14,15 +14,16 @@ const EMAIL_VERIFIED_COOKIE = "email_verified";
 /**
  * Next.js Route Protection Proxy (Next.js 16)
  *
- * Enforces session verification, email verification, and onboarding access policies:
+ * Enforces session verification, email verification, and onboarding/dashboard access policies:
  * 1. Read auth_token directly from request.cookies.
- * 2. If unauthenticated, access to /onboarding or /dashboard redirects to /register.
+ * 2. If unauthenticated, access to /dashboard redirects to /login, /onboarding redirects to /register.
  * 3. If authenticated but email is not verified, access to /onboarding or /dashboard redirects to /verify-email.
  * 4. If email is verified, access to /verify-email redirects to /onboarding or /dashboard.
  * 5. If authenticated and verified, access to /register or /login redirects to:
  *    - /onboarding (if store creation is pending)
  *    - /dashboard (if store is already provisioned)
  * 6. Access to /dashboard without a provisioned store redirects to /onboarding.
+ * 7. Access to /onboarding with an already provisioned store redirects to /dashboard.
  */
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -61,16 +62,19 @@ export function proxy(request: NextRequest) {
   const isDashboardRoute =
     pathname === "/dashboard" || pathname.startsWith("/dashboard/");
 
-  // 1. Unauthenticated users attempting to access protected routes (/onboarding or /dashboard)
+  // 1. Unauthenticated users attempting to access protected routes (/dashboard or /onboarding)
   if (!isAuthenticated && isProtectedRoute) {
-    const registerUrl = new URL("/register", request.url);
+    const redirectTarget = pathname.startsWith("/onboarding")
+      ? "/register"
+      : "/login";
+    const targetUrl = new URL(redirectTarget, request.url);
     if (pathname !== "/dashboard" && pathname !== "/onboarding") {
-      registerUrl.searchParams.set("from", pathname);
+      targetUrl.searchParams.set("from", pathname);
     }
-    return NextResponse.redirect(registerUrl);
+    return NextResponse.redirect(targetUrl);
   }
 
-  // 2. Authenticated users without verified email attempting to access /onboarding or /dashboard
+  // 2. Authenticated users without verified email attempting to access protected routes
   if (isAuthenticated && !isEmailVerified && isProtectedRoute) {
     return NextResponse.redirect(new URL("/verify-email", request.url));
   }
@@ -93,6 +97,11 @@ export function proxy(request: NextRequest) {
   // 5. Authenticated users attempting to access /dashboard when store creation is still pending
   if (isAuthenticated && !hasStore && isDashboardRoute) {
     return NextResponse.redirect(new URL("/onboarding", request.url));
+  }
+
+  // 6. Authenticated users attempting to access /onboarding when store is already provisioned
+  if (isAuthenticated && hasStore && pathname === "/onboarding") {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
   // 6. Multi-tenant host header forwarding
