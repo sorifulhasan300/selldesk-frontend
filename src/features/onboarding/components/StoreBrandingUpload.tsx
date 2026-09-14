@@ -7,6 +7,7 @@ import { fileToDataUrl } from "../hooks/useOnboardingStore";
 import { toast } from "sonner";
 
 export interface StoreBrandingUploadProps {
+  storeId?: string;
   logoUrl?: string;
   logoPublicId?: string;
   bannerUrl?: string;
@@ -17,6 +18,7 @@ export interface StoreBrandingUploadProps {
 }
 
 export function StoreBrandingUpload({
+  storeId,
   logoUrl,
   bannerUrl,
   onLogoChange,
@@ -53,8 +55,9 @@ export function StoreBrandingUpload({
       formData.append("file", file);
 
       const res = await uploadImageAction(formData, {
-        folder: "stores",
-        isPublic: true,
+        folder: "logo",
+        isPublic: !storeId,
+        storeId,
       });
 
       if (res.success && res.data) {
@@ -97,8 +100,9 @@ export function StoreBrandingUpload({
       formData.append("file", file);
 
       const res = await uploadImageAction(formData, {
-        folder: "stores",
-        isPublic: true,
+        folder: "banner",
+        isPublic: !storeId,
+        storeId,
       });
 
       if (res.success && res.data) {

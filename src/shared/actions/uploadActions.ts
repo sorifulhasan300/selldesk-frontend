@@ -10,6 +10,7 @@ import type { AuthActionResult, UploadedAsset } from "@/features/auth/types";
 export interface UploadOptions {
   folder?: string;
   isPublic?: boolean;
+  storeId?: string;
 }
 
 /**
@@ -34,15 +35,23 @@ export async function uploadImageAction(
     const folderName =
       options?.folder || (options?.isPublic ? "avatars" : "store");
 
+    const isPublic = options?.isPublic ?? !options?.storeId;
+
     // Primary endpoint determination
-    const primaryEndpoint = options?.isPublic
+    const primaryEndpoint = isPublic
       ? API_ENDPOINTS.UPLOAD.PUBLIC(folderName)
       : API_ENDPOINTS.UPLOAD.SINGLE(folderName);
+
+    const headers: Record<string, string> = {};
+    if (options?.storeId) {
+      headers["x-store-id"] = options.storeId;
+    }
 
     try {
       const result = await serverApiClient.upload<UploadedAsset>(
         primaryEndpoint,
         formData,
+        { headers },
       );
 
       return {
