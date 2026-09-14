@@ -115,6 +115,8 @@ export const step3StoreSchema = z.object({
   logoPublicId: z.string().optional().or(z.literal("")),
   bannerUrl: z.string().optional().or(z.literal("")),
   bannerPublicId: z.string().optional().or(z.literal("")),
+  logoPreview: z.string().optional().or(z.literal("")),
+  bannerPreview: z.string().optional().or(z.literal("")),
 });
 
 export const onboardingFormSchema = step1PackageSchema
@@ -162,4 +164,6 @@ export const defaultOnboardingValues: OnboardingFormData = {
   logoPublicId: "",
   bannerUrl: "",
   bannerPublicId: "",
+  logoPreview: "",
+  bannerPreview: "",
 };

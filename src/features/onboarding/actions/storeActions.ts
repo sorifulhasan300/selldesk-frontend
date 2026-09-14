@@ -6,17 +6,29 @@ import {
   ServerApiError,
 } from "@/shared/lib/api/server-client";
 import { API_ENDPOINTS } from "@/shared/constants/api-endpoints";
+import { uploadImageAction } from "@/shared/actions/uploadActions";
 import {
   onboardingFormSchema,
   type OnboardingFormData,
 } from "../schemas/onboardingSchema";
 import type { Tenant } from "@/features/tenant/types";
-import type { AuthActionResult, AuthTokens } from "@/features/auth/types";
+import type {
+  AuthActionResult,
+  AuthTokens,
+  UploadedAsset,
+} from "@/features/auth/types";
 
 export interface StoreActionResult extends AuthActionResult<Tenant> {
   store?: Tenant;
   redirectUrl?: string;
   requiresPayment?: boolean;
+}
+
+export interface UpdateStoreBrandingPayload {
+  logoUrl?: string;
+  logoPublicId?: string;
+  bannerUrl?: string;
+  bannerPublicId?: string;
 }
 
 const cookieOpts = {
@@ -26,6 +38,11 @@ const cookieOpts = {
   maxAge: 60 * 60 * 24 * 30,
 };
 
+/**
+ * Step A (Create Store Base Record):
+ * Submits the onboarding form payload to POST /api/v1/stores WITHOUT waiting for
+ * Cloudinary image URLs. Returns the created store and sets session cookies.
+ */
 export async function createStoreAction(
   storeData: OnboardingFormData,
 ): Promise<StoreActionResult> {
@@ -48,6 +65,7 @@ export async function createStoreAction(
     const selectedPkg =
       storeData.packageId || storeData.selectedPackageId || "free-trial";
 
+    // Omit image URLs so the base record is created immediately in PostgreSQL
     const payload = {
       packageId: selectedPkg,
       planId: selectedPkg,
@@ -62,10 +80,10 @@ export async function createStoreAction(
           ? storeData.storePhone.trim()
           : `0${storeData.storePhone.trim()}`
         : undefined,
-      logoUrl: storeData.logoUrl?.trim() || undefined,
-      logoPublicId: storeData.logoPublicId?.trim() || undefined,
-      bannerUrl: storeData.bannerUrl?.trim() || undefined,
-      bannerPublicId: storeData.bannerPublicId?.trim() || undefined,
+      logoUrl: undefined,
+      logoPublicId: undefined,
+      bannerUrl: undefined,
+      bannerPublicId: undefined,
     };
 
     const response = await serverApiClient.post<{
@@ -75,7 +93,6 @@ export async function createStoreAction(
       requiresPayment?: boolean;
       redirectUrl?: string;
     }>(API_ENDPOINTS.TENANTS.CREATE, payload);
-    console.log("Store creation response:", response);
 
     const createdStore: Tenant =
       (response as { store?: Tenant })?.store ||
@@ -143,6 +160,86 @@ export async function createStoreAction(
     return {
       success: false,
       message: "Failed to create store. Please try again.",
+      error: rawMessage,
+    };
+  }
+}
+
+/**
+ * Step B Helper (Upload Store Asset):
+ * Uploads a logo or banner file to the dedicated Cloudinary store folder:
+ * selldesk/stores/{storeId}/logo or selldesk/stores/{storeId}/banner
+ */
+export async function uploadStoreAssetAction(
+  formData: FormData,
+  storeId: string,
+  assetType: "logo" | "banner",
+): Promise<AuthActionResult<UploadedAsset>> {
+  return uploadImageAction(formData, {
+    folder: assetType,
+    storeId,
+    isPublic: false,
+  });
+}
+
+/**
+ * Step B Sync (Update Store Branding):
+ * Sends PATCH /api/v1/stores/{storeId} with Cloudinary URLs and Public IDs.
+ */
+export async function updateStoreBrandingAction(
+  storeId: string,
+  branding: UpdateStoreBrandingPayload,
+): Promise<StoreActionResult> {
+  try {
+    if (!storeId) {
+      return {
+        success: false,
+        message: "Store ID is required to update branding.",
+        error: "Missing storeId",
+      };
+    }
+
+    const payload: UpdateStoreBrandingPayload = {};
+    if (branding.logoUrl !== undefined) payload.logoUrl = branding.logoUrl;
+    if (branding.logoPublicId !== undefined)
+      payload.logoPublicId = branding.logoPublicId;
+    if (branding.bannerUrl !== undefined)
+      payload.bannerUrl = branding.bannerUrl;
+    if (branding.bannerPublicId !== undefined)
+      payload.bannerPublicId = branding.bannerPublicId;
+
+    const response = await serverApiClient.patch<Tenant>(
+      API_ENDPOINTS.TENANTS.UPDATE(storeId),
+      payload,
+      { storeId },
+    );
+
+    const updatedStore: Tenant =
+      (response as { store?: Tenant })?.store ||
+      (response as unknown as Tenant);
+
+    return {
+      success: true,
+      message: "Store branding updated successfully.",
+      store: updatedStore,
+      data: updatedStore,
+    };
+  } catch (error: unknown) {
+    if (error instanceof ServerApiError) {
+      return {
+        success: false,
+        message: error.message || "Failed to update store branding.",
+        error: error.message,
+        errors: error.errors,
+      };
+    }
+    const rawMessage =
+      error instanceof Error
+        ? error.message
+        : "Unable to update store branding.";
+    return {
+      success: false,
+      message: "Failed to update store branding.",
       error: rawMessage,
     };
   }
