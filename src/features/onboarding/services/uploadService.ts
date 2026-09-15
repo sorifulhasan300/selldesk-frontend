@@ -8,6 +8,13 @@ export interface UploadBackendResponse {
   publicId?: string;
   format?: string;
   bytes?: number;
+  data?: {
+    url?: string;
+    public_id?: string;
+    secure_url?: string;
+    publicId?: string;
+    [key: string]: unknown;
+  };
   [key: string]: unknown;
 }
 
@@ -89,6 +96,7 @@ export async function uploadImageToBackend(
 
     return {
       ...resData,
+      data: resData,
       url,
       public_id,
       secure_url: resData?.secure_url || url,

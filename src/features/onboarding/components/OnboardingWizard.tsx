@@ -256,10 +256,10 @@ function OnboardingWizardForm() {
         useTenantStore.getState().setTenant(result.store);
       }
 
-      let uploadedLogoUrl: string | undefined;
-      let uploadedLogoPublicId: string | undefined;
-      let uploadedBannerUrl: string | undefined;
-      let uploadedBannerPublicId: string | undefined;
+      let logoUrl: string | undefined;
+      let logoPublicId: string | undefined;
+      let bannerUrl: string | undefined;
+      let bannerPublicId: string | undefined;
       let logoFailed = false;
       let bannerFailed = false;
 
@@ -271,15 +271,19 @@ function OnboardingWizardForm() {
       if (logoFile) {
         setSubmissionStage("uploading");
         try {
-          const logoRes = await uploadImageToBackend(
+          const logoResponse = await uploadImageToBackend(
             logoFile,
             `selldesk/stores/${storeId}/logo`,
             { storeId, token: authToken },
           );
 
-          if (logoRes && (logoRes.url || logoRes.secure_url)) {
-            uploadedLogoUrl = logoRes.url || logoRes.secure_url;
-            uploadedLogoPublicId = logoRes.public_id || logoRes.publicId;
+          // Extract values safely
+          logoUrl = logoResponse?.data?.url || logoResponse?.url;
+          logoPublicId =
+            logoResponse?.data?.public_id || logoResponse?.public_id;
+
+          if (!logoUrl) {
+            logoFailed = true;
           }
         } catch (error: unknown) {
           const uploadErr = error as { response?: { data?: unknown } };
@@ -299,15 +303,19 @@ function OnboardingWizardForm() {
       if (bannerFile) {
         setSubmissionStage("uploading");
         try {
-          const bannerRes = await uploadImageToBackend(
+          const bannerResponse = await uploadImageToBackend(
             bannerFile,
             `selldesk/stores/${storeId}/banner`,
             { storeId, token: authToken },
           );
 
-          if (bannerRes && (bannerRes.url || bannerRes.secure_url)) {
-            uploadedBannerUrl = bannerRes.url || bannerRes.secure_url;
-            uploadedBannerPublicId = bannerRes.public_id || bannerRes.publicId;
+          // Extract values safely
+          bannerUrl = bannerResponse?.data?.url || bannerResponse?.url;
+          bannerPublicId =
+            bannerResponse?.data?.public_id || bannerResponse?.public_id;
+
+          if (!bannerUrl) {
+            bannerFailed = true;
           }
         } catch (error: unknown) {
           const uploadErr = error as { response?: { data?: unknown } };
@@ -324,21 +332,30 @@ function OnboardingWizardForm() {
       // Extract returned url & public_id from both responses,
       // and pass these URLs to the store PATCH action.
       // ─────────────────────────────────────────────────────────────
-      if (uploadedLogoUrl || uploadedBannerUrl) {
+      if (logoUrl || bannerUrl) {
         setSubmissionStage("finalizing");
         try {
+          console.log("Sending PATCH Payload to Store:", {
+            logo_url: logoUrl,
+            logo_public_id: logoPublicId,
+            banner_url: bannerUrl,
+            banner_public_id: bannerPublicId,
+          });
+
+          const patchPayload = {
+            logoUrl: logoUrl,
+            logoPublicId: logoPublicId,
+            bannerUrl: bannerUrl,
+            bannerPublicId: bannerPublicId,
+            logo_url: logoUrl,
+            logo_public_id: logoPublicId,
+            banner_url: bannerUrl,
+            banner_public_id: bannerPublicId,
+          };
+
           const patchRes = await updateStoreBrandingAction(
             storeId,
-            {
-              logo_url: uploadedLogoUrl,
-              logo_public_id: uploadedLogoPublicId,
-              banner_url: uploadedBannerUrl,
-              banner_public_id: uploadedBannerPublicId,
-              logoUrl: uploadedLogoUrl,
-              logoPublicId: uploadedLogoPublicId,
-              bannerUrl: uploadedBannerUrl,
-              bannerPublicId: uploadedBannerPublicId,
-            },
+            patchPayload,
             authToken,
           );
 

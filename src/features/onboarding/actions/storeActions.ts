@@ -246,17 +246,33 @@ export async function updateStoreBrandingAction(
       branding.bannerUploadResult?.public_id ??
       branding.bannerUploadResult?.publicId;
 
+    console.log("Sending PATCH Payload to Store:", {
+      logo_url: logoUrl,
+      logo_public_id: logoPublicId,
+      banner_url: bannerUrl,
+      banner_public_id: bannerPublicId,
+    });
+
     const payload: {
+      logoUrl?: string;
+      logoPublicId?: string;
+      bannerUrl?: string;
+      bannerPublicId?: string;
       logo_url?: string;
       logo_public_id?: string;
       banner_url?: string;
       banner_public_id?: string;
-    } = {};
-
-    if (logoUrl !== undefined) payload.logo_url = logoUrl;
-    if (logoPublicId !== undefined) payload.logo_public_id = logoPublicId;
-    if (bannerUrl !== undefined) payload.banner_url = bannerUrl;
-    if (bannerPublicId !== undefined) payload.banner_public_id = bannerPublicId;
+    } = {
+      logoUrl: logoUrl !== undefined ? logoUrl : undefined,
+      logoPublicId: logoPublicId !== undefined ? logoPublicId : undefined,
+      bannerUrl: bannerUrl !== undefined ? bannerUrl : undefined,
+      bannerPublicId: bannerPublicId !== undefined ? bannerPublicId : undefined,
+      logo_url: logoUrl !== undefined ? logoUrl : undefined,
+      logo_public_id: logoPublicId !== undefined ? logoPublicId : undefined,
+      banner_url: bannerUrl !== undefined ? bannerUrl : undefined,
+      banner_public_id:
+        bannerPublicId !== undefined ? bannerPublicId : undefined,
+    };
 
     const targetEndpoint = API_ENDPOINTS.TENANTS.UPDATE(storeId);
 
@@ -295,4 +311,18 @@ export async function updateStoreBrandingAction(
       error: rawMessage,
     };
   }
+}
+
+export async function createStore(
+  storeData: OnboardingFormData,
+): Promise<StoreActionResult> {
+  return createStoreAction(storeData);
+}
+
+export async function updateStore(
+  storeId: string,
+  branding: UpdateStoreBrandingPayload,
+  token?: string,
+): Promise<StoreActionResult> {
+  return updateStoreBrandingAction(storeId, branding, token);
 }
