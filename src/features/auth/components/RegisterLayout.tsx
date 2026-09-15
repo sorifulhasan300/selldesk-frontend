@@ -159,7 +159,7 @@ export function RegisterLayout({ children }: RegisterLayoutProps) {
                   {/* Bottom Redirection Link */}
                   <div className="mt-6 border-t border-border/60 pt-4 text-center">
                     <p className="text-xs text-muted-foreground">
-                      Already have an account?{" "}
+                      Already have an account?
                       <Link
                         href="/login"
                         className="font-semibold text-primary hover:underline transition-colors"

@@ -52,12 +52,6 @@ export function LoginLayout({ children }: LoginLayoutProps) {
 
             {/* Value Proposition Hero Content */}
             <div className="space-y-6">
-              {/* Trust Badge Pill */}
-              <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-secondary/60 px-3.5 py-1.5 text-xs font-semibold text-primary backdrop-blur-xs">
-                <Sparkles className="size-3.5" />
-                <span>Secure & Modern E-Commerce Platform</span>
-              </div>
-
               <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl xl:text-5xl leading-tight">
                 Welcome back to{" "}
                 <span className="text-primary underline decoration-primary/30 decoration-wavy underline-offset-8">
@@ -162,10 +156,6 @@ export function LoginLayout({ children }: LoginLayoutProps) {
                   <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground pt-1">
                     Sign in to your account
                   </h2>
-                  <p className="text-xs sm:text-sm text-muted-foreground">
-                    Enter your email or phone number and password to access your
-                    dashboard.
-                  </p>
                 </div>
 
                 {/* Login Form Slot */}
@@ -179,7 +169,7 @@ export function LoginLayout({ children }: LoginLayoutProps) {
                       href="/register"
                       className="font-semibold text-primary hover:underline transition-colors"
                     >
-                      Sign Up 🚀
+                      Sign Up
                     </Link>
                   </p>
                 </div>

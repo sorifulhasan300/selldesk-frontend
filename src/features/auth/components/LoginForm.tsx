@@ -219,7 +219,7 @@ export function LoginForm() {
             </>
           ) : (
             <>
-              <span>Sign In 🔑</span>
+              <span>Sign In</span>
               <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-1" />
             </>
           )}
