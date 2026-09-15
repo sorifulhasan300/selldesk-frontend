@@ -4,7 +4,7 @@ import type { NextRequest } from "next/server";
 /**
  * Route Configuration Constants
  */
-const PROTECTED_PREFIXES = ["/dashboard", "/onboarding"];
+const PROTECTED_PREFIXES = ["/dashboard", "/onboarding", "/admin"];
 const AUTH_ROUTES = ["/login", "/register"];
 
 const AUTH_COOKIE_NAME = "auth_token";

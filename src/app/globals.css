@@ -56,6 +56,23 @@
   --font-sans: var(--font-inter), sans-serif;
   --font-heading: var(--font-jakarta), sans-serif;
   --font-bengali: var(--font-hind), sans-serif;
+
+  /* SellDesk Admin Tokens */
+  --color-admin-bg: var(--bg);
+  --color-admin-surface: var(--surface);
+  --color-admin-sidebar: var(--sidebar-bg);
+  --color-admin-line: var(--line);
+  --color-admin-text: var(--text);
+  --color-admin-text-soft: var(--text-soft);
+  --color-admin-brand: var(--brand);
+  --color-admin-brand-dark: var(--brand-dark);
+  --color-admin-brand-soft: var(--brand-soft);
+  --color-admin-gold: var(--gold);
+  --color-admin-gold-soft: var(--gold-soft);
+  --color-admin-green: var(--green);
+  --color-admin-green-soft: var(--green-soft);
+  --color-admin-red: var(--red);
+  --color-admin-red-soft: var(--red-soft);
 }
 
 /*
@@ -145,6 +162,23 @@
   --sidebar-accent-foreground: 262 83% 38%;
   --sidebar-border: 220 13% 91%;
   --sidebar-ring: 262 83% 58%;
+
+  /* SellDesk Admin Light Theme Specification Tokens */
+  --bg: #f6f5fb;
+  --surface: #ffffff;
+  --sidebar-bg: #ffffff;
+  --line: #e9e7f3;
+  --text: #1c1a2e;
+  --text-soft: #77738c;
+  --brand: #7c5cfc;
+  --brand-dark: #5c3fe0;
+  --brand-soft: #f0ecff;
+  --gold: #c98a2c;
+  --gold-soft: #fbf1df;
+  --green: #1e9a6c;
+  --green-soft: #e6f7ef;
+  --red: #d8484a;
+  --red-soft: #fcebeb;
 }
 
 .dark {
