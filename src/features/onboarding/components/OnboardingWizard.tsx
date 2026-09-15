@@ -23,8 +23,8 @@ import {
 import {
   createStoreAction,
   updateStoreBrandingAction,
-  uploadStoreAssetAction,
 } from "../actions/storeActions";
+import { uploadImageToBackend } from "../services/uploadService";
 import { useTenantStore } from "@/features/tenant/stores/useTenantStore";
 import { OnboardingProgressStepper } from "./OnboardingProgressStepper";
 import { StorePlanSummary } from "./StorePlanSummary";
@@ -35,7 +35,12 @@ import { ProductTypeSelectCards } from "./ProductTypeSelectCards";
 import { SellingStatusSelectCards } from "./SellingStatusSelectCards";
 import { RevenueTierSelectCards } from "./RevenueTierSelectCards";
 
-export type SubmissionStage = "idle" | "creating" | "uploading" | "redirecting";
+export type SubmissionStage =
+  | "idle"
+  | "creating"
+  | "uploading"
+  | "finalizing"
+  | "redirecting";
 
 function OnboardingWizardForm() {
   const router = useRouter();
@@ -204,172 +209,186 @@ function OnboardingWizardForm() {
 
   const onSubmit = async (data: OnboardingFormData) => {
     try {
-      // Step A: Create Store Base Record in Database
+      const currentStoreData = useOnboardingStore.getState().formData;
+      const selectedPkg =
+        data.packageId ||
+        data.selectedPackageId ||
+        currentStoreData.packageId ||
+        currentStoreData.selectedPackageId ||
+        "free-trial";
+
+      // ─────────────────────────────────────────────────────────────
+      // STEP 1 (Base Creation):
+      // Call POST /api/v1/stores with basic metadata WITHOUT image URLs
+      // ─────────────────────────────────────────────────────────────
       setSubmissionStage("creating");
 
-      const currentStoreData = useOnboardingStore.getState().formData;
-      const submissionData: OnboardingFormData = {
+      const baseCreationData: OnboardingFormData = {
         ...data,
-        packageId:
-          data.packageId ||
-          data.selectedPackageId ||
-          currentStoreData.packageId ||
-          currentStoreData.selectedPackageId ||
-          "free-trial",
-        selectedPackageId:
-          data.selectedPackageId ||
-          data.packageId ||
-          currentStoreData.selectedPackageId ||
-          currentStoreData.packageId ||
-          "free-trial",
-        logoUrl: data.logoUrl || currentStoreData.logoUrl || "",
-        logoPublicId: data.logoPublicId || currentStoreData.logoPublicId || "",
-        bannerUrl: data.bannerUrl || currentStoreData.bannerUrl || "",
-        bannerPublicId:
-          data.bannerPublicId || currentStoreData.bannerPublicId || "",
+        packageId: selectedPkg,
+        selectedPackageId: selectedPkg,
+        // Enforce no image URLs in Step 1
+        logoUrl: "",
+        logoPublicId: "",
+        bannerUrl: "",
+        bannerPublicId: "",
+        logoPreview: "",
+        bannerPreview: "",
       };
 
-      const result = await createStoreAction(submissionData);
-      if (!result.success) {
+      const result = await createStoreAction(baseCreationData);
+      if (!result.success || !result.store?.id) {
         toast.error("Store creation failed", {
-          description: result.error || result.message,
+          description:
+            result.error ||
+            result.message ||
+            "Failed to initialize store base record. Please try again.",
         });
         setSubmissionStage("idle");
         return;
       }
 
-      const storeId = result.store?.id;
-      if (!storeId) {
-        toast.error("Store creation failed", {
-          description: "Missing storeId in server response",
-        });
-        setSubmissionStage("idle");
-        return;
-      }
+      const storeId = result.store.id;
+      const authToken = result.tokens?.accessToken;
 
+      // Update tenant store in global state
       if (result.store) {
         useTenantStore.getState().setTenant(result.store);
       }
 
-      // Step B: Post-Creation Image Upload Fallback
-      // If branding images were already pre-uploaded, createStoreAction and backend relocation handled them.
-      // Only execute post-creation upload if a local File exists that has NOT been uploaded to CDN yet.
-      const needsLogoFallback = Boolean(
-        logoFile &&
-        (!submissionData.logoUrl || !submissionData.logoUrl.startsWith("http")),
-      );
-      const needsBannerFallback = Boolean(
-        bannerFile &&
-        (!submissionData.bannerUrl ||
-          !submissionData.bannerUrl.startsWith("http")),
-      );
+      let uploadedLogoUrl: string | undefined;
+      let uploadedLogoPublicId: string | undefined;
+      let uploadedBannerUrl: string | undefined;
+      let uploadedBannerPublicId: string | undefined;
+      let logoFailed = false;
+      let bannerFailed = false;
 
-      if (needsLogoFallback || needsBannerFallback) {
+      // ─────────────────────────────────────────────────────────────
+      // STEP 2 (Dynamic Logo Upload):
+      // Take the selected Logo File object and upload via
+      // uploadImageToBackend(logoFile, `selldesk/stores/${storeId}/logo`)
+      // ─────────────────────────────────────────────────────────────
+      if (logoFile) {
         setSubmissionStage("uploading");
+        try {
+          const logoRes = await uploadImageToBackend(
+            logoFile,
+            `selldesk/stores/${storeId}/logo`,
+            { storeId, token: authToken },
+          );
 
-        let uploadedLogoUrl: string | undefined;
-        let uploadedLogoPublicId: string | undefined;
-        let uploadedBannerUrl: string | undefined;
-        let uploadedBannerPublicId: string | undefined;
-        let logoFailed = false;
-        let bannerFailed = false;
-
-        // Upload logo fallback if needed
-        if (needsLogoFallback && logoFile) {
-          try {
-            const logoFormData = new FormData();
-            logoFormData.append("file", logoFile);
-            logoFormData.append("storeId", storeId);
-            logoFormData.append("folder", "logo");
-            logoFormData.append("isPublic", "false");
-            const logoRes = await uploadStoreAssetAction(
-              logoFormData,
-              storeId,
-              "logo",
-            );
-            if (logoRes.success && logoRes.data?.url) {
-              uploadedLogoUrl = logoRes.data.url;
-              uploadedLogoPublicId = logoRes.data.publicId;
-            } else {
-              logoFailed = true;
-            }
-          } catch {
-            logoFailed = true;
+          if (logoRes && (logoRes.url || logoRes.secure_url)) {
+            uploadedLogoUrl = logoRes.url || logoRes.secure_url;
+            uploadedLogoPublicId = logoRes.public_id || logoRes.publicId;
           }
+        } catch (error: unknown) {
+          const uploadErr = error as { response?: { data?: unknown } };
+          console.log(
+            "Upload Response Error:",
+            uploadErr?.response?.data || error,
+          );
+          logoFailed = true;
         }
+      }
 
-        // Upload banner fallback if needed
-        if (needsBannerFallback && bannerFile) {
-          try {
-            const bannerFormData = new FormData();
-            bannerFormData.append("file", bannerFile);
-            bannerFormData.append("storeId", storeId);
-            bannerFormData.append("folder", "banner");
-            bannerFormData.append("isPublic", "false");
-            const bannerRes = await uploadStoreAssetAction(
-              bannerFormData,
-              storeId,
-              "banner",
-            );
-            if (bannerRes.success && bannerRes.data?.url) {
-              uploadedBannerUrl = bannerRes.data.url;
-              uploadedBannerPublicId = bannerRes.data.publicId;
-            } else {
-              bannerFailed = true;
-            }
-          } catch {
-            bannerFailed = true;
+      // ─────────────────────────────────────────────────────────────
+      // STEP 3 (Dynamic Banner Upload):
+      // Take the selected Banner File object and upload via
+      // uploadImageToBackend(bannerFile, `selldesk/stores/${storeId}/banner`)
+      // ─────────────────────────────────────────────────────────────
+      if (bannerFile) {
+        setSubmissionStage("uploading");
+        try {
+          const bannerRes = await uploadImageToBackend(
+            bannerFile,
+            `selldesk/stores/${storeId}/banner`,
+            { storeId, token: authToken },
+          );
+
+          if (bannerRes && (bannerRes.url || bannerRes.secure_url)) {
+            uploadedBannerUrl = bannerRes.url || bannerRes.secure_url;
+            uploadedBannerPublicId = bannerRes.public_id || bannerRes.publicId;
           }
+        } catch (error: unknown) {
+          const uploadErr = error as { response?: { data?: unknown } };
+          console.log(
+            "Upload Response Error:",
+            uploadErr?.response?.data || error,
+          );
+          bannerFailed = true;
         }
+      }
 
-        // Sync uploaded assets to store record via PATCH /api/v1/stores/{storeId}
-        if (uploadedLogoUrl || uploadedBannerUrl) {
-          try {
-            const patchRes = await updateStoreBrandingAction(storeId, {
+      // ─────────────────────────────────────────────────────────────
+      // STEP 4 (Database Sync):
+      // Extract returned url & public_id from both responses,
+      // and pass these URLs to the store PATCH action.
+      // ─────────────────────────────────────────────────────────────
+      if (uploadedLogoUrl || uploadedBannerUrl) {
+        setSubmissionStage("finalizing");
+        try {
+          const patchRes = await updateStoreBrandingAction(
+            storeId,
+            {
+              logo_url: uploadedLogoUrl,
+              logo_public_id: uploadedLogoPublicId,
+              banner_url: uploadedBannerUrl,
+              banner_public_id: uploadedBannerPublicId,
               logoUrl: uploadedLogoUrl,
               logoPublicId: uploadedLogoPublicId,
               bannerUrl: uploadedBannerUrl,
               bannerPublicId: uploadedBannerPublicId,
-            });
-            if (patchRes.success && patchRes.store) {
-              useTenantStore.getState().setTenant(patchRes.store);
-            }
-          } catch (patchErr) {
-            console.warn("Failed to patch store branding:", patchErr);
-          }
-        }
+            },
+            authToken,
+          );
 
-        if (logoFailed && bannerFailed) {
-          toast.warning("Store created successfully.", {
-            description:
-              "Logo and banner upload failed, you can update them in settings.",
-          });
-        } else if (logoFailed) {
-          toast.warning("Store created successfully.", {
-            description: "Logo upload failed, you can update it in settings.",
-          });
-        } else if (bannerFailed) {
-          toast.warning("Store created successfully.", {
-            description: "Banner upload failed, you can update it in settings.",
-          });
-        } else {
-          toast.success("Store created successfully! 🎉");
+          if (patchRes.success && patchRes.store) {
+            useTenantStore.getState().setTenant(patchRes.store);
+          }
+        } catch (patchErr: unknown) {
+          const apiErr = patchErr as { response?: { data?: unknown } };
+          console.log(
+            "Patch Branding Response Error:",
+            apiErr?.response?.data || patchErr,
+          );
         }
-      } else {
-        toast.success("Store created successfully! 🎉");
       }
 
-      // Step C: Finalize & Redirect
-      setSubmissionStage("redirecting");
+      // ─────────────────────────────────────────────────────────────
+      // STEP 5 (Redirect):
+      // Finalize setup, clear drafts, notify user, and redirect
+      // ─────────────────────────────────────────────────────────────
+      setSubmissionStage("finalizing");
       setIsCompleted(true);
 
       // Auto-Clean on Successful Submission: clear selldesk_onboarding_draft_v2
       resetOnboarding();
       clearOnboardingDraft();
 
+      if (logoFailed && bannerFailed) {
+        toast.warning("Store created successfully!", {
+          description:
+            "Branding image uploads failed. You can update your logo and banner anytime in Store Settings.",
+        });
+      } else if (logoFailed) {
+        toast.warning("Store created successfully!", {
+          description:
+            "Logo upload failed. You can update it anytime in Store Settings.",
+        });
+      } else if (bannerFailed) {
+        toast.warning("Store created successfully!", {
+          description:
+            "Banner upload failed. You can update it anytime in Store Settings.",
+        });
+      } else {
+        toast.success("Store created successfully! 🎉");
+      }
+
       const targetUrl =
         result.redirectUrl ||
         (result.requiresPayment ? "/dashboard?payment=pending" : "/dashboard");
+
+      setSubmissionStage("redirecting");
 
       // Perform full window navigation to safely reload session cookies
       // and prevent Chrome DevTools Soft-Navigation (reportAllChanges) crash
@@ -380,7 +399,10 @@ function OnboardingWizardForm() {
       }
     } catch (err) {
       toast.error("Failed to create store", {
-        description: err instanceof Error ? err.message : "Unexpected error",
+        description:
+          err instanceof Error
+            ? err.message
+            : "Unexpected error during store setup.",
       });
       setSubmissionStage("idle");
     }
@@ -688,15 +710,14 @@ function OnboardingWizardForm() {
                   className="w-full bg-[#0F172A] hover:bg-[#1E293B] text-white font-medium pl-6 pr-1.5 py-1.5 rounded-full inline-flex items-center justify-between transition-all duration-200 active:scale-[0.99] disabled:opacity-60 cursor-pointer shadow-md"
                 >
                   <span className="text-sm font-semibold">
-                    {isUploadingBranding
-                      ? "Uploading Branding..."
-                      : submissionStage === "creating"
-                        ? "Creating Store..."
-                        : submissionStage === "uploading"
-                          ? "Uploading Assets..."
-                          : submissionStage === "redirecting"
-                            ? "Redirecting..."
-                            : "Complete Setup & Launch Store"}
+                    {submissionStage === "creating"
+                      ? "Creating store base..."
+                      : submissionStage === "uploading" || isUploadingBranding
+                        ? "Uploading store branding..."
+                        : submissionStage === "finalizing" ||
+                            submissionStage === "redirecting"
+                          ? "Finalizing store setup..."
+                          : "Complete Setup & Launch Store"}
                   </span>
                   <span className="flex size-9 items-center justify-center rounded-full bg-[#7C5CFC] text-white shadow-xs">
                     {isSubmitting ? (

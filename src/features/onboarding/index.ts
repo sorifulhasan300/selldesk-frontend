@@ -17,3 +17,4 @@ export * from "./components/StorePlanSummary";
 export * from "./components/StoreBrandingUpload";
 export * from "./components/SubdomainInputField";
 export * from "./components/SubscriptionCard";
+export * from "./services/uploadService";

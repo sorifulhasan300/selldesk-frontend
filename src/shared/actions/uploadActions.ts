@@ -87,9 +87,10 @@ export async function uploadImageAction(
         data: result,
       };
     } catch (primaryError: unknown) {
-      // If single upload failed due to missing store context during onboarding, attempt public endpoint fallback
+      // If single upload failed without a storeId (e.g. initial public avatars), attempt public endpoint fallback
       if (
         !options?.isPublic &&
+        !storeId &&
         primaryError instanceof ServerApiError &&
         (primaryError.statusCode === 403 || primaryError.statusCode === 401)
       ) {

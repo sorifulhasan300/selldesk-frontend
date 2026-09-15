@@ -86,6 +86,12 @@ export const TENANTS = {
   UPDATE: (storeId: string) => `/stores/${storeId}`,
 
   /**
+   * Dedicated media update endpoint for store logo and banner assets
+   * PATCH /api/v1/stores/:storeId/media
+   */
+  UPDATE_MEDIA: (storeId: string) => `/stores/${storeId}/media`,
+
+  /**
    * Delete store workspace
    * DELETE /api/v1/stores/:storeId
    */

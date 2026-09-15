@@ -24,11 +24,24 @@ export interface StoreActionResult extends AuthActionResult<Tenant> {
   requiresPayment?: boolean;
 }
 
+export interface CloudinaryUploadResult {
+  secure_url?: string;
+  url?: string;
+  public_id?: string;
+  publicId?: string;
+}
+
 export interface UpdateStoreBrandingPayload {
+  logo_url?: string;
+  logo_public_id?: string;
+  banner_url?: string;
+  banner_public_id?: string;
   logoUrl?: string;
   logoPublicId?: string;
   bannerUrl?: string;
   bannerPublicId?: string;
+  logoUploadResult?: CloudinaryUploadResult;
+  bannerUploadResult?: CloudinaryUploadResult;
 }
 
 const cookieOpts = {
@@ -65,29 +78,6 @@ export async function createStoreAction(
     const selectedPkg =
       storeData.packageId || storeData.selectedPackageId || "free-trial";
 
-    // Extract and sanitize branding URLs (ensure only valid HTTP/HTTPS CDN URLs are sent to backend)
-    const validLogoUrl =
-      typeof storeData.logoUrl === "string" &&
-      /^https?:\/\//i.test(storeData.logoUrl.trim())
-        ? storeData.logoUrl.trim()
-        : undefined;
-    const validLogoPublicId =
-      typeof storeData.logoPublicId === "string" &&
-      storeData.logoPublicId.trim().length > 0
-        ? storeData.logoPublicId.trim()
-        : undefined;
-
-    const validBannerUrl =
-      typeof storeData.bannerUrl === "string" &&
-      /^https?:\/\//i.test(storeData.bannerUrl.trim())
-        ? storeData.bannerUrl.trim()
-        : undefined;
-    const validBannerPublicId =
-      typeof storeData.bannerPublicId === "string" &&
-      storeData.bannerPublicId.trim().length > 0
-        ? storeData.bannerPublicId.trim()
-        : undefined;
-
     const payload = {
       packageId: selectedPkg,
       planId: selectedPkg,
@@ -102,10 +92,6 @@ export async function createStoreAction(
           ? storeData.storePhone.trim()
           : `0${storeData.storePhone.trim()}`
         : undefined,
-      logoUrl: validLogoUrl,
-      logoPublicId: validLogoPublicId,
-      bannerUrl: validBannerUrl,
-      bannerPublicId: validBannerPublicId,
     };
 
     const response = await serverApiClient.post<{
@@ -188,8 +174,8 @@ export async function createStoreAction(
 }
 
 /**
- * Step B Helper (Upload Store Asset):
- * Uploads a logo or banner file to the dedicated Cloudinary store folder:
+ * Step 2 & Step 3 Helper (Dynamic Store Asset Upload):
+ * Uploads a logo or banner file directly targeting the dynamic Cloudinary store folder:
  * selldesk/stores/{storeId}/logo or selldesk/stores/{storeId}/banner
  */
 export async function uploadStoreAssetAction(
@@ -198,8 +184,9 @@ export async function uploadStoreAssetAction(
   assetType: "logo" | "banner",
   token?: string,
 ): Promise<AuthActionResult<UploadedAsset>> {
+  const dynamicFolder = `selldesk/stores/${storeId}/${assetType}`;
   if (formData instanceof FormData) {
-    formData.set("folder", assetType);
+    formData.set("folder", dynamicFolder);
     formData.set("storeId", storeId);
     formData.set("isPublic", "false");
     if (token) {
@@ -207,7 +194,7 @@ export async function uploadStoreAssetAction(
     }
   }
   return uploadImageAction(formData, {
-    folder: assetType,
+    folder: dynamicFolder,
     storeId,
     isPublic: false,
     token,
@@ -215,8 +202,14 @@ export async function uploadStoreAssetAction(
 }
 
 /**
- * Step B Sync (Update Store Branding):
- * Sends PATCH /api/v1/stores/{storeId} with Cloudinary URLs and Public IDs.
+ * Step 4 Sync (Update Store Branding):
+ * Sends PATCH /api/v1/stores/{storeId} with exact snake_case Cloudinary URLs and Public IDs:
+ * {
+ *   "logo_url": logoUploadResult.secure_url,
+ *   "logo_public_id": logoUploadResult.public_id,
+ *   "banner_url": bannerUploadResult.secure_url,
+ *   "banner_public_id": bannerUploadResult.public_id
+ * }
  */
 export async function updateStoreBrandingAction(
   storeId: string,
@@ -232,17 +225,43 @@ export async function updateStoreBrandingAction(
       };
     }
 
-    const payload: UpdateStoreBrandingPayload = {};
-    if (branding.logoUrl !== undefined) payload.logoUrl = branding.logoUrl;
-    if (branding.logoPublicId !== undefined)
-      payload.logoPublicId = branding.logoPublicId;
-    if (branding.bannerUrl !== undefined)
-      payload.bannerUrl = branding.bannerUrl;
-    if (branding.bannerPublicId !== undefined)
-      payload.bannerPublicId = branding.bannerPublicId;
+    const logoUrl =
+      branding.logo_url ??
+      branding.logoUrl ??
+      branding.logoUploadResult?.secure_url ??
+      branding.logoUploadResult?.url;
+    const logoPublicId =
+      branding.logo_public_id ??
+      branding.logoPublicId ??
+      branding.logoUploadResult?.public_id ??
+      branding.logoUploadResult?.publicId;
+    const bannerUrl =
+      branding.banner_url ??
+      branding.bannerUrl ??
+      branding.bannerUploadResult?.secure_url ??
+      branding.bannerUploadResult?.url;
+    const bannerPublicId =
+      branding.banner_public_id ??
+      branding.bannerPublicId ??
+      branding.bannerUploadResult?.public_id ??
+      branding.bannerUploadResult?.publicId;
+
+    const payload: {
+      logo_url?: string;
+      logo_public_id?: string;
+      banner_url?: string;
+      banner_public_id?: string;
+    } = {};
+
+    if (logoUrl !== undefined) payload.logo_url = logoUrl;
+    if (logoPublicId !== undefined) payload.logo_public_id = logoPublicId;
+    if (bannerUrl !== undefined) payload.banner_url = bannerUrl;
+    if (bannerPublicId !== undefined) payload.banner_public_id = bannerPublicId;
+
+    const targetEndpoint = API_ENDPOINTS.TENANTS.UPDATE(storeId);
 
     const response = await serverApiClient.patch<Tenant>(
-      API_ENDPOINTS.TENANTS.UPDATE(storeId),
+      targetEndpoint,
       payload,
       { storeId, token },
     );
