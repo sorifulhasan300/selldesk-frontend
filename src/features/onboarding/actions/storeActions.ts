@@ -65,7 +65,29 @@ export async function createStoreAction(
     const selectedPkg =
       storeData.packageId || storeData.selectedPackageId || "free-trial";
 
-    // Omit image URLs so the base record is created immediately in PostgreSQL
+    // Extract and sanitize branding URLs (ensure only valid HTTP/HTTPS CDN URLs are sent to backend)
+    const validLogoUrl =
+      typeof storeData.logoUrl === "string" &&
+      /^https?:\/\//i.test(storeData.logoUrl.trim())
+        ? storeData.logoUrl.trim()
+        : undefined;
+    const validLogoPublicId =
+      typeof storeData.logoPublicId === "string" &&
+      storeData.logoPublicId.trim().length > 0
+        ? storeData.logoPublicId.trim()
+        : undefined;
+
+    const validBannerUrl =
+      typeof storeData.bannerUrl === "string" &&
+      /^https?:\/\//i.test(storeData.bannerUrl.trim())
+        ? storeData.bannerUrl.trim()
+        : undefined;
+    const validBannerPublicId =
+      typeof storeData.bannerPublicId === "string" &&
+      storeData.bannerPublicId.trim().length > 0
+        ? storeData.bannerPublicId.trim()
+        : undefined;
+
     const payload = {
       packageId: selectedPkg,
       planId: selectedPkg,
@@ -80,10 +102,10 @@ export async function createStoreAction(
           ? storeData.storePhone.trim()
           : `0${storeData.storePhone.trim()}`
         : undefined,
-      logoUrl: undefined,
-      logoPublicId: undefined,
-      bannerUrl: undefined,
-      bannerPublicId: undefined,
+      logoUrl: validLogoUrl,
+      logoPublicId: validLogoPublicId,
+      bannerUrl: validBannerUrl,
+      bannerPublicId: validBannerPublicId,
     };
 
     const response = await serverApiClient.post<{
@@ -174,11 +196,21 @@ export async function uploadStoreAssetAction(
   formData: FormData,
   storeId: string,
   assetType: "logo" | "banner",
+  token?: string,
 ): Promise<AuthActionResult<UploadedAsset>> {
+  if (formData instanceof FormData) {
+    formData.set("folder", assetType);
+    formData.set("storeId", storeId);
+    formData.set("isPublic", "false");
+    if (token) {
+      formData.set("token", token);
+    }
+  }
   return uploadImageAction(formData, {
     folder: assetType,
     storeId,
     isPublic: false,
+    token,
   });
 }
 
@@ -189,6 +221,7 @@ export async function uploadStoreAssetAction(
 export async function updateStoreBrandingAction(
   storeId: string,
   branding: UpdateStoreBrandingPayload,
+  token?: string,
 ): Promise<StoreActionResult> {
   try {
     if (!storeId) {
@@ -211,7 +244,7 @@ export async function updateStoreBrandingAction(
     const response = await serverApiClient.patch<Tenant>(
       API_ENDPOINTS.TENANTS.UPDATE(storeId),
       payload,
-      { storeId },
+      { storeId, token },
     );
 
     const updatedStore: Tenant =

@@ -51,7 +51,8 @@ function OnboardingWizardForm() {
 
   const [submissionStage, setSubmissionStage] =
     useState<SubmissionStage>("idle");
-  const isSubmitting = submissionStage !== "idle";
+  const [isUploadingBranding, setIsUploadingBranding] = useState(false);
+  const isSubmitting = submissionStage !== "idle" || isUploadingBranding;
   const [isCompleted, setIsCompleted] = useState(false);
 
   // Client-side image File objects held in memory for post-creation upload
@@ -221,6 +222,11 @@ function OnboardingWizardForm() {
           currentStoreData.selectedPackageId ||
           currentStoreData.packageId ||
           "free-trial",
+        logoUrl: data.logoUrl || currentStoreData.logoUrl || "",
+        logoPublicId: data.logoPublicId || currentStoreData.logoPublicId || "",
+        bannerUrl: data.bannerUrl || currentStoreData.bannerUrl || "",
+        bannerPublicId:
+          data.bannerPublicId || currentStoreData.bannerPublicId || "",
       };
 
       const result = await createStoreAction(submissionData);
@@ -245,8 +251,20 @@ function OnboardingWizardForm() {
         useTenantStore.getState().setTenant(result.store);
       }
 
-      // Step B: Post-Creation Image Upload & Sync
-      if (logoFile || bannerFile) {
+      // Step B: Post-Creation Image Upload Fallback
+      // If branding images were already pre-uploaded, createStoreAction and backend relocation handled them.
+      // Only execute post-creation upload if a local File exists that has NOT been uploaded to CDN yet.
+      const needsLogoFallback = Boolean(
+        logoFile &&
+        (!submissionData.logoUrl || !submissionData.logoUrl.startsWith("http")),
+      );
+      const needsBannerFallback = Boolean(
+        bannerFile &&
+        (!submissionData.bannerUrl ||
+          !submissionData.bannerUrl.startsWith("http")),
+      );
+
+      if (needsLogoFallback || needsBannerFallback) {
         setSubmissionStage("uploading");
 
         let uploadedLogoUrl: string | undefined;
@@ -256,11 +274,14 @@ function OnboardingWizardForm() {
         let logoFailed = false;
         let bannerFailed = false;
 
-        // Upload logo if File exists
-        if (logoFile) {
+        // Upload logo fallback if needed
+        if (needsLogoFallback && logoFile) {
           try {
             const logoFormData = new FormData();
             logoFormData.append("file", logoFile);
+            logoFormData.append("storeId", storeId);
+            logoFormData.append("folder", "logo");
+            logoFormData.append("isPublic", "false");
             const logoRes = await uploadStoreAssetAction(
               logoFormData,
               storeId,
@@ -277,11 +298,14 @@ function OnboardingWizardForm() {
           }
         }
 
-        // Upload banner if File exists
-        if (bannerFile) {
+        // Upload banner fallback if needed
+        if (needsBannerFallback && bannerFile) {
           try {
             const bannerFormData = new FormData();
             bannerFormData.append("file", bannerFile);
+            bannerFormData.append("storeId", storeId);
+            bannerFormData.append("folder", "banner");
+            bannerFormData.append("isPublic", "false");
             const bannerRes = await uploadStoreAssetAction(
               bannerFormData,
               storeId,
@@ -315,7 +339,6 @@ function OnboardingWizardForm() {
           }
         }
 
-        // Non-blocking error handling & warning toasts
         if (logoFailed && bannerFailed) {
           toast.warning("Store created successfully.", {
             description:
@@ -573,32 +596,43 @@ function OnboardingWizardForm() {
               <StoreBrandingUpload
                 logoPreview={logoPreview}
                 bannerPreview={bannerPreview}
+                logoUrl={allFormValues?.logoUrl}
+                bannerUrl={allFormValues?.bannerUrl}
+                onUploadingChange={(isUploading) =>
+                  setIsUploadingBranding(isUploading)
+                }
                 onLogoSelect={(file, previewUrl) => {
                   setLogoFile(file);
                   setValue("logoPreview", previewUrl, {
                     shouldValidate: true,
                     shouldDirty: true,
                   });
-                  setValue("logoUrl", previewUrl, {
+                }}
+                onLogoChange={(url, publicId) => {
+                  setValue("logoUrl", url, {
                     shouldValidate: true,
                     shouldDirty: true,
                   });
-                  setValue("logoPublicId", "", {
+                  setValue("logoPublicId", publicId || "", {
                     shouldValidate: true,
                     shouldDirty: true,
                   });
-                  // Immediately persist preview state to draft storage
+                  setValue("logoPreview", url, {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                  });
+                  // Immediately persist state to draft storage
                   useOnboardingStore.getState().setFormData({
-                    logoPreview: previewUrl,
-                    logoUrl: previewUrl,
-                    logoPublicId: "",
+                    logoPreview: url,
+                    logoUrl: url,
+                    logoPublicId: publicId || "",
                   });
                   setStoredOnboardingDraft(
                     {
                       ...getValues(),
-                      logoPreview: previewUrl,
-                      logoUrl: previewUrl,
-                      logoPublicId: "",
+                      logoPreview: url,
+                      logoUrl: url,
+                      logoPublicId: publicId || "",
                     },
                     4,
                     isSubdomainManuallyEdited,
@@ -610,26 +644,32 @@ function OnboardingWizardForm() {
                     shouldValidate: true,
                     shouldDirty: true,
                   });
-                  setValue("bannerUrl", previewUrl, {
+                }}
+                onBannerChange={(url, publicId) => {
+                  setValue("bannerUrl", url, {
                     shouldValidate: true,
                     shouldDirty: true,
                   });
-                  setValue("bannerPublicId", "", {
+                  setValue("bannerPublicId", publicId || "", {
                     shouldValidate: true,
                     shouldDirty: true,
                   });
-                  // Immediately persist preview state to draft storage
+                  setValue("bannerPreview", url, {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                  });
+                  // Immediately persist state to draft storage
                   useOnboardingStore.getState().setFormData({
-                    bannerPreview: previewUrl,
-                    bannerUrl: previewUrl,
-                    bannerPublicId: "",
+                    bannerPreview: url,
+                    bannerUrl: url,
+                    bannerPublicId: publicId || "",
                   });
                   setStoredOnboardingDraft(
                     {
                       ...getValues(),
-                      bannerPreview: previewUrl,
-                      bannerUrl: previewUrl,
-                      bannerPublicId: "",
+                      bannerPreview: url,
+                      bannerUrl: url,
+                      bannerPublicId: publicId || "",
                     },
                     4,
                     isSubdomainManuallyEdited,
@@ -648,13 +688,15 @@ function OnboardingWizardForm() {
                   className="w-full bg-[#0F172A] hover:bg-[#1E293B] text-white font-medium pl-6 pr-1.5 py-1.5 rounded-full inline-flex items-center justify-between transition-all duration-200 active:scale-[0.99] disabled:opacity-60 cursor-pointer shadow-md"
                 >
                   <span className="text-sm font-semibold">
-                    {submissionStage === "creating"
-                      ? "Creating Store..."
-                      : submissionStage === "uploading"
-                        ? "Uploading Assets..."
-                        : submissionStage === "redirecting"
-                          ? "Redirecting..."
-                          : "Complete Setup & Launch Store"}
+                    {isUploadingBranding
+                      ? "Uploading Branding..."
+                      : submissionStage === "creating"
+                        ? "Creating Store..."
+                        : submissionStage === "uploading"
+                          ? "Uploading Assets..."
+                          : submissionStage === "redirecting"
+                            ? "Redirecting..."
+                            : "Complete Setup & Launch Store"}
                   </span>
                   <span className="flex size-9 items-center justify-center rounded-full bg-[#7C5CFC] text-white shadow-xs">
                     {isSubmitting ? (

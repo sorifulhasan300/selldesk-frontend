@@ -11,6 +11,7 @@ export interface UploadOptions {
   folder?: string;
   isPublic?: boolean;
   storeId?: string;
+  token?: string;
 }
 
 /**
@@ -32,10 +33,33 @@ export async function uploadImageAction(
       };
     }
 
-    const folderName =
-      options?.folder || (options?.isPublic ? "avatars" : "store");
+    // Allow options from parameter or embedded directly inside FormData
+    const formFolder = formData.get("folder");
+    const formIsPublic = formData.get("isPublic");
+    const formStoreId = formData.get("storeId");
+    const formToken = formData.get("token");
 
-    const isPublic = options?.isPublic ?? !options?.storeId;
+    const folderName =
+      (typeof formFolder === "string" && formFolder.trim()
+        ? formFolder.trim()
+        : undefined) ||
+      options?.folder ||
+      (options?.isPublic ? "avatars" : "store");
+
+    const storeId =
+      (typeof formStoreId === "string" && formStoreId.trim()
+        ? formStoreId.trim()
+        : undefined) || options?.storeId;
+
+    const token =
+      (typeof formToken === "string" && formToken.trim()
+        ? formToken.trim()
+        : undefined) || options?.token;
+
+    const isPublic =
+      formIsPublic !== null
+        ? formIsPublic === "true" || formIsPublic === "1"
+        : (options?.isPublic ?? !storeId);
 
     // Primary endpoint determination
     const primaryEndpoint = isPublic
@@ -43,15 +67,18 @@ export async function uploadImageAction(
       : API_ENDPOINTS.UPLOAD.SINGLE(folderName);
 
     const headers: Record<string, string> = {};
-    if (options?.storeId) {
-      headers["x-store-id"] = options.storeId;
+    if (storeId) {
+      headers["x-store-id"] = storeId;
+    }
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
     }
 
     try {
       const result = await serverApiClient.upload<UploadedAsset>(
         primaryEndpoint,
         formData,
-        { headers },
+        { headers, storeId, token },
       );
 
       return {
