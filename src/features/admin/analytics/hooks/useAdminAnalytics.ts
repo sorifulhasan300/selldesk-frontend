@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { getAdminAnalyticsOverview } from "../service/analyticsService";
 import type {
   AdminAnalyticsOverviewResponse,
@@ -16,23 +17,20 @@ export interface UseAdminAnalyticsReturn {
   timeframe: AdminAnalyticsTimeframe;
   setTimeframe: (timeframe: AdminAnalyticsTimeframe) => void;
   refetch: () => Promise<void>;
+  isFetching: boolean;
 }
 
 /**
  * Custom React Hook for Super Admin Analytics Overview
- * Provides client-side data fetching, timeframe filtering, and zero-reload refetching.
+ * Powered by TanStack Query v5 with 5-minute caching and zero-reload instant navigation.
  */
 export function useAdminAnalytics(
   initialTimeframe: AdminAnalyticsTimeframe = "month",
 ): UseAdminAnalyticsReturn {
-  const [data, setData] = useState<AdminAnalyticsOverviewResponse | null>(null);
   const [overrideTimeframe, setOverrideTimeframe] =
     useState<AdminAnalyticsTimeframe | null>(null);
   const [prevInitialTimeframe, setPrevInitialTimeframe] =
     useState<AdminAnalyticsTimeframe>(initialTimeframe);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isError, setIsError] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
 
   // If initialTimeframe changed externally (e.g. from URL searchParams), reset override
   if (initialTimeframe !== prevInitialTimeframe) {
@@ -42,70 +40,37 @@ export function useAdminAnalytics(
 
   const effectiveTimeframe = overrideTimeframe ?? initialTimeframe;
 
-  const fetchOverview = useCallback(
-    async (tf: AdminAnalyticsTimeframe = effectiveTimeframe) => {
-      setIsLoading(true);
-      setIsError(false);
-      setError(null);
-
-      try {
-        const response = await getAdminAnalyticsOverview(tf);
-        setData(response);
-      } catch (err) {
-        setIsError(true);
-        const errMsg = apiClient.getErrorMessage(err);
-        setError(errMsg || "Failed to load admin analytics overview.");
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [effectiveTimeframe],
-  );
-
-  useEffect(() => {
-    let isCancelled = false;
-
-    const execute = async () => {
-      setIsLoading(true);
-      setIsError(false);
-      setError(null);
-
-      try {
-        const response = await getAdminAnalyticsOverview(effectiveTimeframe);
-        if (!isCancelled) {
-          setData(response);
-        }
-      } catch (err) {
-        if (!isCancelled) {
-          setIsError(true);
-          const errMsg = apiClient.getErrorMessage(err);
-          setError(errMsg || "Failed to load admin analytics overview.");
-        }
-      } finally {
-        if (!isCancelled) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    execute();
-
-    return () => {
-      isCancelled = true;
-    };
-  }, [effectiveTimeframe]);
-
-  const refetch = useCallback(async () => {
-    await fetchOverview(effectiveTimeframe);
-  }, [fetchOverview, effectiveTimeframe]);
-
-  return {
+  const {
     data,
     isLoading,
     isError,
     error,
+    refetch: queryRefetch,
+    isFetching,
+  } = useQuery({
+    queryKey: ["admin", "analytics", "overview", effectiveTimeframe],
+    queryFn: () => getAdminAnalyticsOverview(effectiveTimeframe),
+    staleTime: 5 * 60 * 1000, // 5 minutes cache freshness for instant back/forward navigation
+  });
+
+  const refetch = useCallback(async () => {
+    await queryRefetch();
+  }, [queryRefetch]);
+
+  const errorMessage = error
+    ? apiClient.getErrorMessage(error) ||
+      error.message ||
+      "Failed to load admin analytics overview."
+    : null;
+
+  return {
+    data: data ?? null,
+    isLoading,
+    isError,
+    error: errorMessage,
     timeframe: effectiveTimeframe,
     setTimeframe: setOverrideTimeframe,
     refetch,
+    isFetching,
   };
 }
