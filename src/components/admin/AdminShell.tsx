@@ -31,11 +31,13 @@ export function AdminShell({ children }: AdminShellProps) {
         {/* Core Administrative Surface */}
         <div className="flex-1 flex flex-col min-w-0 min-h-screen bg-[#F6F5FB] overflow-y-auto">
           <main className="flex-1 px-4 py-6 md:px-8 md:pt-6 md:pb-15 w-full">
-            <AdminHeader
-              onToggleMobileSidebar={() =>
-                setMobileSidebarOpen((prev) => !prev)
-              }
-            />
+            <React.Suspense fallback={null}>
+              <AdminHeader
+                onToggleMobileSidebar={() =>
+                  setMobileSidebarOpen((prev) => !prev)
+                }
+              />
+            </React.Suspense>
             {children}
           </main>
         </div>

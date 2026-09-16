@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Search, Bell, Mail, Menu, Plus } from "lucide-react";
 import { useAuthStore } from "@/features/auth/stores/useAuthStore";
 
@@ -34,15 +35,32 @@ export function AdminHeader({
   onSearchChange,
 }: AdminHeaderProps) {
   const { user } = useAuthStore();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const urlTimeframe = searchParams.get("timeframe") as TimeRange | null;
+  const validUrlRange: TimeRange | null =
+    urlTimeframe === "week" ||
+    urlTimeframe === "month" ||
+    urlTimeframe === "year"
+      ? urlTimeframe
+      : null;
+
   const [internalRange, setInternalRange] = useState<TimeRange>("month");
   const selectedRange =
-    controlledRange !== undefined ? controlledRange : internalRange;
+    controlledRange !== undefined
+      ? controlledRange
+      : (validUrlRange ?? internalRange);
 
   const handleRangeSelect = (range: TimeRange) => {
     if (onRangeChange) {
       onRangeChange(range);
     } else {
       setInternalRange(range);
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("timeframe", range);
+      router.push(`${pathname}?${params.toString()}`, { scroll: false });
     }
   };
 

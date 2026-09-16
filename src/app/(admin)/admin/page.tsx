@@ -1,6 +1,7 @@
 "use client";
 
-import React from "react";
+import React, { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   useAdminAnalytics,
   AdminAnalyticsSkeleton,
@@ -10,10 +11,16 @@ import {
   AdminPlanDistribution,
   AdminRecentStoresTable,
 } from "@/features/admin/analytics";
+import type { AdminAnalyticsTimeframe } from "@/features/admin/analytics";
 
-export default function AdminOverviewPage() {
+function AdminOverviewContent() {
+  const searchParams = useSearchParams();
+  const rawTimeframe = searchParams.get("timeframe");
+  const timeframe: AdminAnalyticsTimeframe =
+    rawTimeframe === "week" || rawTimeframe === "year" ? rawTimeframe : "month";
+
   const { data, isLoading, isError, error, refetch } =
-    useAdminAnalytics("month");
+    useAdminAnalytics(timeframe);
 
   if (isLoading) {
     return <AdminAnalyticsSkeleton />;
@@ -37,5 +44,13 @@ export default function AdminOverviewPage() {
       {/* Recent Stores Table Panel */}
       <AdminRecentStoresTable recentStores={data?.recentStores} />
     </div>
+  );
+}
+
+export default function AdminOverviewPage() {
+  return (
+    <Suspense fallback={<AdminAnalyticsSkeleton />}>
+      <AdminOverviewContent />
+    </Suspense>
   );
 }

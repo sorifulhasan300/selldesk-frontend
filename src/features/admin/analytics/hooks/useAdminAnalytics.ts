@@ -26,14 +26,24 @@ export function useAdminAnalytics(
   initialTimeframe: AdminAnalyticsTimeframe = "month",
 ): UseAdminAnalyticsReturn {
   const [data, setData] = useState<AdminAnalyticsOverviewResponse | null>(null);
-  const [timeframe, setTimeframe] =
+  const [overrideTimeframe, setOverrideTimeframe] =
+    useState<AdminAnalyticsTimeframe | null>(null);
+  const [prevInitialTimeframe, setPrevInitialTimeframe] =
     useState<AdminAnalyticsTimeframe>(initialTimeframe);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isError, setIsError] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
+  // If initialTimeframe changed externally (e.g. from URL searchParams), reset override
+  if (initialTimeframe !== prevInitialTimeframe) {
+    setPrevInitialTimeframe(initialTimeframe);
+    setOverrideTimeframe(null);
+  }
+
+  const effectiveTimeframe = overrideTimeframe ?? initialTimeframe;
+
   const fetchOverview = useCallback(
-    async (tf: AdminAnalyticsTimeframe = timeframe) => {
+    async (tf: AdminAnalyticsTimeframe = effectiveTimeframe) => {
       setIsLoading(true);
       setIsError(false);
       setError(null);
@@ -49,7 +59,7 @@ export function useAdminAnalytics(
         setIsLoading(false);
       }
     },
-    [timeframe],
+    [effectiveTimeframe],
   );
 
   useEffect(() => {
@@ -61,7 +71,7 @@ export function useAdminAnalytics(
       setError(null);
 
       try {
-        const response = await getAdminAnalyticsOverview(timeframe);
+        const response = await getAdminAnalyticsOverview(effectiveTimeframe);
         if (!isCancelled) {
           setData(response);
         }
@@ -83,19 +93,19 @@ export function useAdminAnalytics(
     return () => {
       isCancelled = true;
     };
-  }, [timeframe]);
+  }, [effectiveTimeframe]);
 
   const refetch = useCallback(async () => {
-    await fetchOverview(timeframe);
-  }, [fetchOverview, timeframe]);
+    await fetchOverview(effectiveTimeframe);
+  }, [fetchOverview, effectiveTimeframe]);
 
   return {
     data,
     isLoading,
     isError,
     error,
-    timeframe,
-    setTimeframe,
+    timeframe: effectiveTimeframe,
+    setTimeframe: setOverrideTimeframe,
     refetch,
   };
 }
