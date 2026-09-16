@@ -141,6 +141,19 @@ export const SUBSCRIPTIONS = {
   CURRENT: "/subscriptions/current",
 } as const;
 
+export const ADMIN = {
+  ANALYTICS: {
+    /**
+     * Super Admin Dashboard Overview KPIs, charts & recent stores
+     * GET /api/v1/admin/analytics/overview?timeframe=week|month|year
+     */
+    OVERVIEW: (timeframe?: "week" | "month" | "year") =>
+      timeframe
+        ? `/admin/analytics/overview?timeframe=${timeframe}`
+        : "/admin/analytics/overview",
+  },
+} as const;
+
 /**
  * Combined API Endpoints map
  */
@@ -149,6 +162,7 @@ export const API_ENDPOINTS = {
   TENANTS,
   UPLOAD,
   SUBSCRIPTIONS,
+  ADMIN,
 } as const;
 
 export default API_ENDPOINTS;

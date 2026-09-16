@@ -75,15 +75,26 @@ export function LoginForm() {
         }
 
         // 3. User feedback toast
+        const role = result.user?.role?.toUpperCase();
+        const isPlatformAdmin =
+          role === "SUPER_ADMIN" || role === "SUPER_STAFF";
+
         toast.success(result.message || "Login successful!", {
-          description: result.hasStore
-            ? "Redirecting to dashboard..."
-            : "Redirecting to store setup...",
+          description: isPlatformAdmin
+            ? "Redirecting to admin console..."
+            : result.hasStore
+              ? "Redirecting to dashboard..."
+              : "Redirecting to store setup...",
         });
 
         // 4. Resolve destination and navigate immediately
         const destination =
-          result.redirectTo || (result.hasStore ? "/dashboard" : "/onboarding");
+          result.redirectTo ||
+          (isPlatformAdmin
+            ? "/admin"
+            : result.hasStore
+              ? "/dashboard"
+              : "/onboarding");
 
         router.push(destination);
         router.refresh();

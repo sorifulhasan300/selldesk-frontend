@@ -10,20 +10,46 @@ const AUTH_ROUTES = ["/login", "/register"];
 const AUTH_COOKIE_NAME = "auth_token";
 const FALLBACK_AUTH_COOKIE_NAME = "selldesk_access_token";
 const EMAIL_VERIFIED_COOKIE = "email_verified";
+const USER_ROLE_COOKIE_NAME = "user_role";
+const FALLBACK_USER_ROLE_COOKIE_NAME = "selldesk_user_role";
+
+/**
+ * Safely decodes role claim from JWT access token
+ */
+function extractRoleFromJwt(jwtToken?: string | null): string | null {
+  if (!jwtToken) return null;
+  try {
+    const parts = jwtToken.split(".");
+    if (parts.length < 2) return null;
+    const base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload =
+      typeof atob === "function"
+        ? atob(base64)
+        : typeof Buffer !== "undefined"
+          ? Buffer.from(base64, "base64").toString("utf-8")
+          : null;
+    if (!jsonPayload) return null;
+    const payload = JSON.parse(jsonPayload) as { role?: string };
+    return payload?.role || null;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Next.js Route Protection Proxy (Next.js 16)
  *
- * Enforces session verification, email verification, and onboarding/dashboard access policies:
+ * Enforces session verification, email verification, role-based boundaries, and onboarding/dashboard access policies:
  * 1. Read auth_token directly from request.cookies.
- * 2. If unauthenticated, access to /dashboard redirects to /login, /onboarding redirects to /register.
- * 3. If authenticated but email is not verified, access to /onboarding or /dashboard redirects to /verify-email.
- * 4. If email is verified, access to /verify-email redirects to /onboarding or /dashboard.
- * 5. If authenticated and verified, access to /register or /login redirects to:
- *    - /onboarding (if store creation is pending)
- *    - /dashboard (if store is already provisioned)
- * 6. Access to /dashboard without a provisioned store redirects to /onboarding.
- * 7. Access to /onboarding with an already provisioned store redirects to /dashboard.
+ * 2. If unauthenticated, access to protected routes redirects to /login (or /register for /onboarding).
+ * 3. If authenticated but email is not verified, access to protected routes redirects to /verify-email.
+ * 4. If authenticated and role is SUPER_ADMIN or SUPER_STAFF:
+ *    - Never allow redirection to /onboarding (redirect to /admin instead).
+ *    - Access to /onboarding, /dashboard, /login, /register, or /verify-email redirects to /admin.
+ * 5. If authenticated tenant user:
+ *    - If email verified, /login or /register redirects to /dashboard (if store provisioned) or /onboarding.
+ *    - Access to /dashboard without a provisioned store redirects to /onboarding.
+ *    - Access to /onboarding with an already provisioned store redirects to /dashboard.
  */
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -47,6 +73,16 @@ export function proxy(request: NextRequest) {
 
   const hasStore = Boolean(storeId && storeId.trim().length > 0);
 
+  // Extract user role from cookies or JWT payload
+  const rawRole =
+    request.cookies.get(USER_ROLE_COOKIE_NAME)?.value ||
+    request.cookies.get(FALLBACK_USER_ROLE_COOKIE_NAME)?.value ||
+    extractRoleFromJwt(authToken);
+
+  const userRole = rawRole ? rawRole.trim().toUpperCase() : null;
+  const isPlatformAdmin =
+    userRole === "SUPER_ADMIN" || userRole === "SUPER_STAFF";
+
   // Identify matching route types
   const isProtectedRoute = PROTECTED_PREFIXES.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
@@ -62,7 +98,10 @@ export function proxy(request: NextRequest) {
   const isDashboardRoute =
     pathname === "/dashboard" || pathname.startsWith("/dashboard/");
 
-  // 1. Unauthenticated users attempting to access protected routes (/dashboard or /onboarding)
+  const isOnboardingRoute =
+    pathname === "/onboarding" || pathname.startsWith("/onboarding/");
+
+  // 1. Unauthenticated users attempting to access protected routes (/dashboard, /onboarding, /admin)
   if (!isAuthenticated && isProtectedRoute) {
     const redirectTarget = pathname.startsWith("/onboarding")
       ? "/register"
@@ -81,6 +120,9 @@ export function proxy(request: NextRequest) {
 
   // 3. Verified authenticated users visiting /verify-email
   if (isAuthenticated && isEmailVerified && isVerifyEmailRoute) {
+    if (isPlatformAdmin) {
+      return NextResponse.redirect(new URL("/admin", request.url));
+    }
     const destination = hasStore ? "/dashboard" : "/onboarding";
     return NextResponse.redirect(new URL(destination, request.url));
   }
@@ -90,21 +132,31 @@ export function proxy(request: NextRequest) {
     if (!isEmailVerified) {
       return NextResponse.redirect(new URL("/verify-email", request.url));
     }
+    if (isPlatformAdmin) {
+      return NextResponse.redirect(new URL("/admin", request.url));
+    }
     const destination = hasStore ? "/dashboard" : "/onboarding";
     return NextResponse.redirect(new URL(destination, request.url));
   }
 
-  // 5. Authenticated users attempting to access /dashboard when store creation is still pending
-  if (isAuthenticated && !hasStore && isDashboardRoute) {
+  // 5. SUPER_ADMIN / SUPER_STAFF route guards: strictly block onboarding and redirect to /admin
+  if (isAuthenticated && isPlatformAdmin) {
+    if (isOnboardingRoute || isDashboardRoute) {
+      return NextResponse.redirect(new URL("/admin", request.url));
+    }
+  }
+
+  // 6. Authenticated tenant users attempting to access /dashboard when store creation is still pending
+  if (isAuthenticated && !isPlatformAdmin && !hasStore && isDashboardRoute) {
     return NextResponse.redirect(new URL("/onboarding", request.url));
   }
 
-  // 6. Authenticated users attempting to access /onboarding when store is already provisioned
-  if (isAuthenticated && hasStore && pathname === "/onboarding") {
+  // 7. Authenticated tenant users attempting to access /onboarding when store is already provisioned
+  if (isAuthenticated && !isPlatformAdmin && hasStore && isOnboardingRoute) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
-  // 6. Multi-tenant host header forwarding
+  // 8. Multi-tenant host header forwarding
   const response = NextResponse.next();
   const host = request.headers.get("host") || "";
   response.headers.set("x-request-host", host);

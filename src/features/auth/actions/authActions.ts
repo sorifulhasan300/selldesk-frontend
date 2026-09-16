@@ -245,6 +245,16 @@ export async function verifyEmailAction(
       ...cookieOptions,
       httpOnly: false,
     });
+    if (verifiedUser.role) {
+      cookieStore.set("user_role", verifiedUser.role, {
+        ...cookieOptions,
+        httpOnly: false,
+      });
+      cookieStore.set("selldesk_user_role", verifiedUser.role, {
+        ...cookieOptions,
+        httpOnly: false,
+      });
+    }
 
     return {
       success: true,
@@ -394,6 +404,21 @@ function extractStoreIdFromJwt(jwtToken: string): string | null {
 }
 
 /**
+ * Helper to safely extract role claim from a JWT access token
+ */
+function extractRoleFromJwt(jwtToken: string): string | null {
+  try {
+    const parts = jwtToken.split(".");
+    if (parts.length < 2) return null;
+    const payloadStr = Buffer.from(parts[1], "base64").toString("utf-8");
+    const payload = JSON.parse(payloadStr) as { role?: string | null };
+    return payload?.role || null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Server Action for User Login
  * Authenticates user credentials, sets HttpOnly auth cookies,
  * verifies store onboarding status, and returns redirect destination.
@@ -458,6 +483,13 @@ export async function loginAction(
       accessToken?: string;
       refreshToken?: string;
       storeId?: string;
+      data?: {
+        user?: AuthUser & { storeId?: string; store?: { id: string } };
+        tokens?: AuthTokens;
+        token?: string;
+        accessToken?: string;
+        storeId?: string;
+      };
     };
 
     const token =
@@ -487,7 +519,27 @@ export async function loginAction(
       httpOnly: false,
     });
 
-    // 4. Resolve store presence to determine onboarding state
+    // 4. Resolve user role and persist in session cookies
+    const userRole = (
+      raw?.user?.role ||
+      raw?.data?.user?.role ||
+      extractRoleFromJwt(token) ||
+      "STORE_OWNER"
+    ).toUpperCase();
+
+    const isPlatformAdmin =
+      userRole === "SUPER_ADMIN" || userRole === "SUPER_STAFF";
+
+    cookieStore.set("user_role", userRole, {
+      ...cookieOptions,
+      httpOnly: false,
+    });
+    cookieStore.set("selldesk_user_role", userRole, {
+      ...cookieOptions,
+      httpOnly: false,
+    });
+
+    // 5. Resolve store presence to determine onboarding state
     let activeStoreId =
       raw?.user?.storeId ||
       raw?.user?.store?.id ||
@@ -526,8 +578,12 @@ export async function loginAction(
       });
     }
 
-    // Determine target redirect based on onboarding completion
-    const redirectTo = hasStore ? "/dashboard" : "/onboarding";
+    // Determine target redirect based on role and onboarding completion
+    const redirectTo = isPlatformAdmin
+      ? "/admin"
+      : hasStore
+        ? "/dashboard"
+        : "/onboarding";
 
     return {
       success: true,
@@ -591,6 +647,8 @@ export async function logoutAction(): Promise<void> {
   cookieStore.delete("selldesk_store_id");
   cookieStore.delete("selldesk_tenant_subdomain");
   cookieStore.delete("email_verified");
+  cookieStore.delete("user_role");
+  cookieStore.delete("selldesk_user_role");
 
   redirect("/login");
 }
