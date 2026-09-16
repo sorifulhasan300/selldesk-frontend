@@ -26,7 +26,6 @@ export interface AdminHeaderProps {
 export function AdminHeader({
   onToggleMobileSidebar,
   title = "Dashboard Overview",
-  subtitle = "A summary of every store across the platform",
   showActionArea = true,
   activeRange: controlledRange,
   onRangeChange,
@@ -143,7 +142,6 @@ export function AdminHeader({
             <h1 className="text-[22px] font-bold text-[#1C1A2E] m-0 mb-1 tracking-tight leading-tight">
               {title}
             </h1>
-            <p className="text-[13.5px] text-[#77738C] m-0">{subtitle}</p>
           </div>
 
           <div className="flex items-center gap-3.5 flex-wrap">
@@ -183,18 +181,6 @@ export function AdminHeader({
                 This year
               </button>
             </div>
-
-            {/* Signature Pill Button with Circular Right Chip */}
-            <button
-              type="button"
-              onClick={onNewStore}
-              className="bg-[#7C5CFC] hover:bg-[#5C3FE0] text-white pl-[18px] pr-[5px] py-[5px] rounded-full inline-flex items-center gap-3 font-semibold text-sm transition-all cursor-pointer shadow-sm shadow-[#7C5CFC]/25"
-            >
-              <span>New store</span>
-              <span className="w-7 h-7 rounded-full bg-[#5C3FE0] flex items-center justify-center text-sm font-semibold text-white leading-none">
-                <Plus className="w-3.5 h-3.5 text-white stroke-[2.5]" />
-              </span>
-            </button>
           </div>
         </div>
       )}

@@ -152,6 +152,16 @@ export const ADMIN = {
         ? `/admin/analytics/overview?timeframe=${timeframe}`
         : "/admin/analytics/overview",
   },
+  STORES: {
+    /**
+     * Super Admin Stores list with pagination, search, status, plan, sorting
+     * GET /api/v1/admin/stores
+     */
+    LIST: "/admin/stores",
+    STATUS: (id: string) => `/admin/stores/${id}/status`,
+    EXTEND_TRIAL: (id: string) => `/admin/stores/${id}/extend-trial`,
+    SWITCH: (id: string) => `/admin/stores/${id}/switch`,
+  },
 } as const;
 
 /**
