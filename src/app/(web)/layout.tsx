@@ -23,15 +23,13 @@ export default function WebLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="bn" className={cn("h-full", hindSiliguri.variable)}>
-      <body
-        className={cn(
-          "min-h-full flex flex-col font-bengali antialiased",
-          hindSiliguri.variable,
-        )}
-      >
-        <div className="flex min-h-screen flex-col">{children}</div>
-      </body>
-    </html>
+    <div
+      className={cn(
+        "min-h-full flex flex-col font-bengali antialiased",
+        hindSiliguri.variable,
+      )}
+    >
+      <div className="flex min-h-screen flex-col">{children}</div>
+    </div>
   );
 }

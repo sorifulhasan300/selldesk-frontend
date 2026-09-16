@@ -134,10 +134,13 @@ export function getAuthToken(): string | null {
       return session.tokens.accessToken;
     }
 
-    // 2. Try cookie
-    const tokenFromCookie = getCookie(AUTH_TOKEN_COOKIE_KEY);
-    if (tokenFromCookie) {
-      return tokenFromCookie;
+    // 2. Try cookie (primary and fallback cookie names)
+    const tokenFromCookie =
+      getCookie(AUTH_TOKEN_COOKIE_KEY) ||
+      getCookie("auth_token") ||
+      getCookie("token");
+    if (tokenFromCookie && tokenFromCookie.trim().length > 0) {
+      return tokenFromCookie.trim();
     }
   } catch {
     // Fail silently in non-browser or sandbox environments

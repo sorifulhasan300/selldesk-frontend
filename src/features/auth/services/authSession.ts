@@ -14,11 +14,37 @@ export function getAuthSession(): AuthSession | null {
   try {
     const raw = localStorage.getItem(AUTH_SESSION_STORAGE_KEY);
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as AuthSession;
-    if (parsed && parsed.tokens && parsed.user) {
-      return parsed;
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object") return null;
+
+    // Handle both Zustand persist wrapper { state: { user, isAuthenticated }, version }
+    // and direct AuthSession / safeSession payload { user, isAuthenticated, tokens }
+    const sessionData =
+      "state" in parsed && parsed.state && typeof parsed.state === "object"
+        ? parsed.state
+        : parsed;
+
+    const user = sessionData?.user;
+    if (!user || typeof user !== "object") {
+      return null;
     }
-    return null;
+
+    const isAuthenticated =
+      typeof sessionData.isAuthenticated === "boolean"
+        ? sessionData.isAuthenticated
+        : Boolean(user);
+
+    const tokens: AuthTokens = sessionData?.tokens || {
+      accessToken: "",
+      refreshToken: "",
+    };
+
+    return {
+      user: user as AuthUser,
+      tokens,
+      isAuthenticated,
+      createdAt: sessionData?.createdAt || new Date().toISOString(),
+    };
   } catch (error) {
     console.error("Failed to parse stored auth session:", error);
     return null;
@@ -36,12 +62,46 @@ export function setAuthSession(
   }
 
   try {
-    const safeSession = {
+    const raw = localStorage.getItem(AUTH_SESSION_STORAGE_KEY);
+    let existingWrapper: Record<string, unknown> | null = null;
+    if (raw) {
+      try {
+        existingWrapper = JSON.parse(raw);
+      } catch {
+        existingWrapper = null;
+      }
+    }
+
+    const safeState = {
       user: session.user,
       isAuthenticated:
         "isAuthenticated" in session ? session.isAuthenticated : true,
     };
-    localStorage.setItem(AUTH_SESSION_STORAGE_KEY, JSON.stringify(safeSession));
+
+    if (
+      existingWrapper &&
+      typeof existingWrapper === "object" &&
+      "state" in existingWrapper
+    ) {
+      localStorage.setItem(
+        AUTH_SESSION_STORAGE_KEY,
+        JSON.stringify({
+          ...existingWrapper,
+          state: {
+            ...(existingWrapper.state as object),
+            ...safeState,
+          },
+        }),
+      );
+    } else {
+      localStorage.setItem(
+        AUTH_SESSION_STORAGE_KEY,
+        JSON.stringify({
+          state: safeState,
+          version: 0,
+        }),
+      );
+    }
   } catch (error) {
     console.error("Failed to save auth session:", error);
   }

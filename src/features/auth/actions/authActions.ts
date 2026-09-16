@@ -511,9 +511,13 @@ export async function loginAction(
       maxAge,
     };
 
-    // Set primary HttpOnly auth cookies
+    // Set primary HttpOnly auth cookie for server and middleware security
     cookieStore.set("auth_token", token, cookieOptions);
-    cookieStore.set("selldesk_access_token", token, cookieOptions);
+    // Set client-accessible access token cookie for browser JS and API client
+    cookieStore.set("selldesk_access_token", token, {
+      ...cookieOptions,
+      httpOnly: false,
+    });
     cookieStore.set("email_verified", "true", {
       ...cookieOptions,
       httpOnly: false,
@@ -585,10 +589,18 @@ export async function loginAction(
         ? "/dashboard"
         : "/onboarding";
 
+    const userObj = raw?.user || raw?.data?.user;
+
     return {
       success: true,
       message: raw?.message || "Login successful!",
-      user: raw?.user,
+      user: userObj,
+      token,
+      tokens: raw?.tokens ||
+        raw?.data?.tokens || {
+          accessToken: token,
+          refreshToken: raw?.refreshToken || "",
+        },
       hasStore,
       redirectTo,
     };

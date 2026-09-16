@@ -23,6 +23,7 @@ import {
 } from "../schemas/loginSchema";
 import { loginAction } from "../actions/authActions";
 import { useAuthStore } from "../hooks/useAuthStore";
+import { setClientAuthToken } from "@/shared/lib/api/token";
 
 export function LoginForm() {
   const router = useRouter();
@@ -69,7 +70,10 @@ export function LoginForm() {
           return;
         }
 
-        // 2. Synchronize active session with client-side reactive store
+        // 2. Synchronize active session with client-side reactive store & token storage
+        if (result.token) {
+          setClientAuthToken(result.token);
+        }
         if (result.user) {
           setAuth(result.user);
         }

@@ -24,6 +24,22 @@ function useIsClient(): boolean {
   );
 }
 
+/**
+ * Hydration listener for Zustand persist storage
+ */
+function useIsStoreHydrated(): boolean {
+  return useSyncExternalStore(
+    (onStoreChange) => {
+      if (!useAuthStore.persist?.onFinishHydration) {
+        return () => {};
+      }
+      return useAuthStore.persist.onFinishHydration(onStoreChange);
+    },
+    () => useAuthStore.persist?.hasHydrated() ?? true,
+    () => false,
+  );
+}
+
 export interface SuperAdminGuardProps {
   children: React.ReactNode;
   /**
@@ -63,6 +79,7 @@ export function SuperAdminGuard({
   const pathname = usePathname();
   const { user, isAuthenticated } = useAuthStore();
   const isClient = useIsClient();
+  const isStoreHydrated = useIsStoreHydrated();
 
   // Resolve authorization state and redirect targets
   let authorizationState:
@@ -75,15 +92,20 @@ export function SuperAdminGuard({
   if (!isClient) {
     authorizationState = "loading";
   } else {
-    // 1. Resolve session credentials
+    // 1. Resolve session credentials synchronously from store or storage
     const localSession = getAuthSession();
     const activeUser = user || localSession?.user || null;
     const hasAuth =
       isAuthenticated || Boolean(localSession?.isAuthenticated && activeUser);
 
     if (!hasAuth || !activeUser) {
-      authorizationState = "unauthenticated";
-      redirectTarget = `${redirectToLogin}?from=${encodeURIComponent(pathname || "/admin")}`;
+      // If store is still rehydrating and storage might not be parsed, keep in loading state
+      if (!isStoreHydrated) {
+        authorizationState = "loading";
+      } else {
+        authorizationState = "unauthenticated";
+        redirectTarget = `${redirectToLogin}?from=${encodeURIComponent(pathname || "/admin")}`;
+      }
     } else {
       const currentRole = (activeUser.role || "").toUpperCase();
 
