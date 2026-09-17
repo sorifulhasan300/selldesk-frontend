@@ -1,6 +1,6 @@
 ---
 name: clean-architecture-frontend
-description: Enforces strict Clean Architecture, SOLID principles, Feature-First modularity, multi-tenant route-group structure, and zero-garbage code standards for Next.js 15, TypeScript, Tailwind, and React projects (SellDesk). Use when writing, refactoring, or reviewing frontend components, hooks, routes, middleware, or API integrations.
+description: Enforces strict Clean Architecture, SOLID principles, Feature-First modularity, multi-tenant route-group structure, reusable DataTable standards, debounced search (useDebounce), and zero-garbage code standards for Next.js 15, TypeScript, Tailwind, and React projects (SellDesk). Use when writing, refactoring, or reviewing frontend components, hooks, routes, middleware, or API integrations.
 ---
 
 # Clean Architecture Frontend Skill (SellDesk)
@@ -13,6 +13,8 @@ This skill guides the AI agent in writing highly maintainable, scalable, type-sa
 - **Strict Layer Separation:** Presentation (UI), Business Logic (Hooks), Infrastructure (API/Data Access), and Routing (`app/`) MUST be strictly decoupled.
 - **Strict Type Safety:** Absolute prohibition of `any` types. All data flows must be typed with TypeScript interfaces or validated via Zod schemas.
 - **Surface Awareness:** Every file belongs to exactly one surface context — `admin`, `dashboard`, `storefront`, or `shared` (cross-surface). Never mix surface-specific logic into a shared file, and never let one surface import another surface's route-level code.
+- **Mandatory Reusable DataTable:** Any tabular data presentation across dashboard or admin surfaces MUST use the shared `@/components/ui/DataTable` component. Writing ad-hoc `<table>` markup is strictly forbidden.
+- **Mandatory Debounced Search:** All search inputs filtering tables or driving queries MUST use the project's `@/hooks/use-debounce` hook. Never fire live requests on raw keystrokes without debouncing.
 
 ---
 
@@ -53,9 +55,9 @@ src/
 │       └── index.ts                 # barrel — only export what other layers need
 │
 ├── components/
-│   ├── ui/                          # dumb design-system primitives (shadcn)
+│   ├── ui/                          # design primitives & reusable widgets (DataTable, button, skeleton)
 │   ├── layout/                      # admin-sidebar, dashboard-sidebar, storefront-header
-│   └── shared/                      # generic composites (data-table, empty-state)
+│   └── common/                      # shared common UI composites (Logo, etc.)
 │
 ├── lib/
 │   ├── api-client.ts                # single Axios instance + auth interceptor
@@ -73,7 +75,7 @@ src/
 │   ├── auth.store.ts
 │   └── tenant.store.ts
 │
-├── hooks/                           # cross-feature reusable hooks (use-auth, use-role-guard)
+├── hooks/                           # cross-feature reusable hooks (use-debounce, use-auth, use-role-guard)
 ├── types/                           # global/shared types only
 ├── config/                          # site config, env schema, constants
 └── styles/
@@ -151,6 +153,30 @@ src/
 
 - **Form & Payload Validation:** Always pair `react-hook-form` with `zod` for input validation.
 - **Explicit Return Types:** Specify explicit return types for hooks, utilities, and API calls.
+
+### 5. Table & Search Standards (Dashboard & Admin)
+
+- **Mandatory Reusable DataTable (`@/components/ui/DataTable`):**
+  - Whenever implementing list or tabular views in the store dashboard or central admin (e.g., products, orders, customers, inventory, staff, stores), **always** use the reusable `DataTable` component located at `@/components/ui/DataTable`.
+  - Creating custom, ad-hoc `<table>`, `<thead>`, `<tbody>`, `<tr>`, `<td>` markup for feature data displays is **strictly forbidden**.
+  - Column definitions must be strictly typed using `ColumnDef<TData, TValue>` from `@/components/ui/DataTable`.
+  - Always extract column definitions into a dedicated `<feature>-columns.tsx` file (e.g., `features/products/components/product-columns.tsx`) to maintain separation of concerns and stay well under the 150-line file limit.
+  - Wire standard props cleanly:
+    - `data`: Typed array of domain records (`TData[]`).
+    - `columns`: Array of `ColumnDef<TData, unknown>[]`.
+    - `keyExtractor`: Function returning a unique row identifier string (e.g., `(row) => row.id`).
+    - `isLoading`: Boolean loading state from TanStack Query.
+    - `loadingRowsCount`: Expected skeleton row count (defaults to page size / limit, e.g. 6 or 10).
+    - `emptyMessage`: Clear, context-aware message or UI node when no records match.
+    - Sorting props (`sortBy`, `sortOrder`, `onSortChange`) and row selection (`enableRowSelection`, `selectedRowIds`, `onSelectRow`, `onSelectAll`) when required.
+
+- **Mandatory Debounced Search with `useDebounce` (`@/hooks/use-debounce`):**
+  - Every search bar, filter input, or query input driving table data or syncing with URL search params MUST use the project's `@/hooks/use-debounce` hook.
+  - Maintain local state for the immediate input (`searchInput`) for a lag-free typing experience, while passing the debounced value (`debouncedSearch`, recommended 300ms–400ms delay) to the query hook or URL params.
+  - Use the returned `flush(immediateValue)` callback to immediately trigger searches upon pressing `Enter` or clicking an explicit search icon/button.
+  - Use the returned `isPending` / `isDebouncing` flag to render search activity spinners or indicators in the UI toolbar.
+  - Never fire API requests, TanStack Query key updates, or router navigation directly inside raw `onChange` keystroke events.
+  - Never implement custom `setTimeout` debounce logic inside components or install redundant third-party debounce packages.
 
 ---
 
@@ -283,6 +309,125 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 }
 ```
 
+### Pattern F: Reusable DataTable with Debounced Search (`features/products/...`)
+
+#### 1. Typed Column Definitions (`features/products/components/product-columns.tsx`)
+
+```typescript
+import type { ColumnDef } from "@/components/ui/DataTable";
+import type { Product } from "../types/product.types";
+
+export const productColumns: ColumnDef<Product>[] = [
+  {
+    id: "name",
+    header: "Product",
+    accessorKey: "name",
+    enableSorting: true,
+    cell: ({ row }) => (
+      <span className="font-medium text-admin-text">{row.name}</span>
+    ),
+  },
+  {
+    id: "price",
+    header: "Price",
+    accessorFn: (row) => `$${row.price.toFixed(2)}`,
+    enableSorting: true,
+  },
+  {
+    id: "status",
+    header: "Status",
+    cell: ({ row }) => (
+      <span className="text-xs px-2 py-0.5 rounded-full bg-admin-brand-soft text-admin-brand">
+        {row.status}
+      </span>
+    ),
+  },
+];
+```
+
+#### 2. Feature Hook with Debounced Search (`features/products/hooks/use-products-table.ts`)
+
+```typescript
+import { useState, useCallback } from "react";
+import { useDebounce } from "@/hooks/use-debounce";
+import { useProducts } from "./use-products";
+
+export function useProductsTable(storeId: string) {
+  const [searchInput, setSearchInput] = useState("");
+
+  // Mandatory: useDebounce hook with 400ms delay and instant flush
+  const [debouncedSearch, flushSearch, isDebouncing] = useDebounce(
+    searchInput,
+    400,
+  );
+
+  const { data, isLoading, refetch } = useProducts(storeId, {
+    search: debouncedSearch,
+  });
+
+  const handleImmediateSearch = useCallback(() => {
+    flushSearch(searchInput);
+  }, [flushSearch, searchInput]);
+
+  return {
+    products: data?.items ?? [],
+    isLoading,
+    searchInput,
+    setSearchInput,
+    isDebouncing,
+    handleImmediateSearch,
+    refetch,
+  };
+}
+```
+
+#### 3. Table UI Component (`features/products/components/ProductsTable.tsx`)
+
+```typescript
+import { DataTable } from "@/components/ui/DataTable";
+import { productColumns } from "./product-columns";
+import { useProductsTable } from "../hooks/use-products-table";
+
+export function ProductsTable({ storeId }: { storeId: string }) {
+  const {
+    products,
+    isLoading,
+    searchInput,
+    setSearchInput,
+    isDebouncing,
+    handleImmediateSearch,
+  } = useProductsTable(storeId);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2">
+        <input
+          type="text"
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleImmediateSearch()}
+          placeholder="Search products..."
+          className="px-3 py-2 border border-admin-line rounded-lg text-sm"
+        />
+        {isDebouncing && (
+          <span className="text-xs text-admin-text-soft">Searching...</span>
+        )}
+      </div>
+
+      {/* Mandatory reusable DataTable */}
+      <DataTable
+        data={products}
+        columns={productColumns}
+        keyExtractor={(row) => row.id}
+        isLoading={isLoading}
+        loadingRowsCount={6}
+        emptyMessage="No products found."
+      />
+    </div>
+  );
+}
+```
+
 ---
 
 ## Anti-Patterns (STRICTLY FORBIDDEN)
@@ -298,6 +443,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 - ❌ Putting a feature-specific API call in `services/` instead of `features/<name>/api/`.
 - ❌ Filtering tenant data client-side (`data.filter(i => i.storeId === currentStore.id)`) — ALWAYS enforce at database & API boundary!
 - ❌ Using unpartitioned TanStack Query keys (e.g., `['products']` instead of `['store', storeId, 'products']`).
+- ❌ Re-inventing custom HTML `<table>` markup in dashboard or admin views instead of using `@/components/ui/DataTable`.
+- ❌ Firing API queries or router navigation directly on raw search input keystrokes without using `@/hooks/use-debounce`.
+- ❌ Writing custom inline `setTimeout` or importing external debounce utilities instead of using `@/hooks/use-debounce`.
+- ❌ Inlining massive column definitions inside table JSX instead of extracting to a `<feature>-columns.tsx` file.
 
 ---
 

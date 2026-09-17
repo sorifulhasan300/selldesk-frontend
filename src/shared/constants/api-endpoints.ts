@@ -162,6 +162,46 @@ export const ADMIN = {
     STATUS: (id: string) => `/admin/stores/${id}/status`,
     SWITCH: (id: string) => `/admin/stores/${id}/switch`,
   },
+  SUBSCRIPTIONS: {
+    /**
+     * List all subscription plans (admin view)
+     * GET /api/v1/admin/subscriptions/plans
+     */
+    PLANS: (includeInactive?: boolean) =>
+      includeInactive !== undefined
+        ? `/admin/subscriptions/plans?includeInactive=${includeInactive}`
+        : "/admin/subscriptions/plans",
+    /**
+     * Create a SaaS plan
+     * POST /api/v1/admin/subscriptions/plans
+     */
+    CREATE_PLAN: "/admin/subscriptions/plans",
+    /**
+     * Update a SaaS plan
+     * PATCH /api/v1/admin/subscriptions/plans/:id
+     */
+    UPDATE_PLAN: (id: string) => `/admin/subscriptions/plans/${id}`,
+    /**
+     * List subscription payments
+     * GET /api/v1/admin/subscriptions/payments
+     */
+    PAYMENTS: (status?: string) =>
+      status
+        ? `/admin/subscriptions/payments?status=${status}`
+        : "/admin/subscriptions/payments",
+    /**
+     * Approve or reject a subscription payment
+     * PATCH /api/v1/admin/subscriptions/payments/:id/approve
+     */
+    APPROVE_PAYMENT: (id: string) =>
+      `/admin/subscriptions/payments/${id}/approve`,
+    /**
+     * Extend store subscription trial
+     * PATCH /api/v1/admin/subscriptions/:storeId/extend-trial
+     */
+    EXTEND_TRIAL: (storeId: string) =>
+      `/admin/subscriptions/${storeId}/extend-trial`,
+  },
 } as const;
 
 /**
