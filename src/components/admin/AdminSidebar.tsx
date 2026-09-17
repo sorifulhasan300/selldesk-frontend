@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Logo } from "@/components/common";
 import {
   LayoutDashboard,
   Store,
@@ -99,19 +100,7 @@ export function AdminSidebar({
     >
       {/* Brand Header */}
       <div className="flex items-center justify-between pb-[26px] px-2">
-        <Link
-          href="/admin"
-          className="flex items-center gap-2.5 text-[18px] font-bold text-[#1C1A2E] no-underline tracking-tight"
-        >
-          {/* Logo Mark: 30x30, rounded-[9px], gradient 135deg */}
-          <div
-            className="w-[30px] h-[30px] rounded-[9px] shrink-0 shadow-xs flex items-center justify-center text-white"
-            style={{
-              background: "linear-gradient(135deg, #7C5CFC 0%, #5C3FE0 100%)",
-            }}
-          />
-          <span>SellDesk</span>
-        </Link>
+        <Logo href="/admin" size="md" priority onClick={onCloseMobile} />
 
         {/* Mobile Close Button */}
         {onCloseMobile && (

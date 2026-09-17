@@ -2,9 +2,10 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Menu, X, ShoppingBag, ArrowRight } from "lucide-react";
+import { Menu, X, ArrowRight } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Logo } from "@/components/common";
 
 const NAV_LINKS = [
   { label: "ফিচার", href: "#features" },
@@ -28,17 +29,7 @@ export function Navbar() {
       <header className="sticky top-0 z-40 w-full border-b border-border/80 bg-background/90 backdrop-blur-md font-bengali">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           {/* Brand Logo */}
-          <Link
-            href="/"
-            className="flex items-center gap-2 font-sans font-bold text-xl tracking-tight text-foreground"
-          >
-            <div className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-xs">
-              <ShoppingBag className="size-5" />
-            </div>
-            <span>
-              Sell<span className="text-primary">Desk</span>
-            </span>
-          </Link>
+          <Logo priority size="md" />
 
           {/* Center Desktop Navigation Links */}
           <nav className="hidden items-center gap-7 md:flex">
@@ -110,18 +101,7 @@ export function Navbar() {
       >
         <div>
           <div className="flex items-center justify-between pb-5 border-b border-border">
-            <Link
-              href="/"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center gap-2 font-sans font-bold text-lg text-foreground"
-            >
-              <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-xs">
-                <ShoppingBag className="size-4" />
-              </div>
-              <span>
-                Sell<span className="text-primary">Desk</span>
-              </span>
-            </Link>
+            <Logo size="sm" onClick={() => setIsOpen(false)} />
             <button
               type="button"
               onClick={() => setIsOpen(false)}
