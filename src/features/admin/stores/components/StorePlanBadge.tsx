@@ -8,9 +8,14 @@ export function StorePlanBadge({ plan }: StorePlanBadgeProps) {
   const normalized = (plan || "").toLowerCase();
 
   let dotColor = "text-admin-line";
-  if (normalized.includes("pro")) {
+  if (normalized.includes("starter")) {
+    dotColor = "text-sky-500";
+  } else if (normalized.includes("pro")) {
     dotColor = "text-admin-brand";
-  } else if (normalized.includes("business")) {
+  } else if (
+    normalized.includes("business") ||
+    normalized.includes("enterprise")
+  ) {
     dotColor = "text-admin-gold";
   }
 

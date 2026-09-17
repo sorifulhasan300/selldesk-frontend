@@ -51,10 +51,10 @@ export function StoresManagementTable() {
 
   const handleToggleStatus = useCallback(
     (store: AdminStoreItem) => {
-      const nextStatus =
-        store.status === "Suspended" || store.status === "Disabled"
-          ? "ACTIVE"
-          : "SUSPENDED";
+      const isSuspendedOrDisabled =
+        store.status?.toUpperCase() === "SUSPENDED" ||
+        store.status?.toUpperCase() === "DISABLED";
+      const nextStatus = isSuspendedOrDisabled ? "ACTIVE" : "SUSPENDED";
       updateStatus({ id: store.id, status: nextStatus });
     },
     [updateStatus],

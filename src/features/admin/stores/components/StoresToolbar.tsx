@@ -44,16 +44,19 @@ export function StoresToolbar({
 
   const statuses = [
     { label: "All Statuses", value: "all" },
-    { label: "Active", value: "Active" },
-    { label: "Trial", value: "Trial" },
-    { label: "Suspended", value: "Suspended" },
+    { label: "Active", value: "ACTIVE" },
+    { label: "Trial", value: "TRIAL" },
+    { label: "Suspended", value: "SUSPENDED" },
+    { label: "Disabled", value: "DISABLED" },
   ];
 
   const plans = [
     { label: "All Plans", value: "all" },
     { label: "Free", value: "Free" },
+    { label: "Starter", value: "Starter" },
     { label: "Pro", value: "Pro" },
     { label: "Business", value: "Business" },
+    { label: "Enterprise", value: "Enterprise" },
   ];
 
   const currentStatusLabel =

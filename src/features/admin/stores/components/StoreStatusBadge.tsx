@@ -14,9 +14,12 @@ export function StoreStatusBadge({ status }: StoreStatusBadgeProps) {
   if (normalized === "trial") {
     colorClasses = "bg-admin-gold-soft text-admin-gold";
     label = "Trial";
-  } else if (normalized === "suspended" || normalized === "disabled") {
+  } else if (normalized === "suspended") {
     colorClasses = "bg-admin-red-soft text-admin-red";
     label = "Suspended";
+  } else if (normalized === "disabled") {
+    colorClasses = "bg-admin-line text-admin-text-soft";
+    label = "Disabled";
   }
 
   return (

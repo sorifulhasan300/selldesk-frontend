@@ -16,9 +16,10 @@ export async function fetchAdminStores(
   if (query.limit) params.set("limit", String(query.limit));
   if (query.search && query.search.trim())
     params.set("search", query.search.trim());
-  if (query.status && query.status !== "all")
-    params.set("status", query.status);
-  if (query.plan && query.plan !== "all") params.set("plan", query.plan);
+  if (query.status && query.status.toLowerCase() !== "all" && query.status.trim())
+    params.set("status", query.status.trim().toUpperCase());
+  if (query.plan && query.plan.toLowerCase() !== "all" && query.plan.trim())
+    params.set("plan", query.plan.trim());
   if (query.sortBy) params.set("sortBy", query.sortBy);
   if (query.sortOrder) params.set("sortOrder", query.sortOrder);
 

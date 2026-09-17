@@ -1,4 +1,8 @@
 export type StoreOperationalStatus =
+  | "ACTIVE"
+  | "TRIAL"
+  | "SUSPENDED"
+  | "DISABLED"
   | "Active"
   | "Trial"
   | "Suspended"
