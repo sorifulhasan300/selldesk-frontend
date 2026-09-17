@@ -1,11 +1,21 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Search, ChevronDown, Settings, RotateCw } from "lucide-react";
+import {
+  Search,
+  ChevronDown,
+  Settings,
+  RotateCw,
+  X,
+  Loader2,
+} from "lucide-react";
 
 export interface StoresToolbarProps {
   searchValue: string;
   onSearchChange: (value: string) => void;
+  onClearSearch?: () => void;
+  onSubmitSearch?: () => void;
+  isSearching?: boolean;
   statusFilter: string;
   onStatusChange: (status: string) => void;
   planFilter: string;
@@ -17,6 +27,9 @@ export interface StoresToolbarProps {
 export function StoresToolbar({
   searchValue,
   onSearchChange,
+  onClearSearch,
+  onSubmitSearch,
+  isSearching = false,
   statusFilter,
   onStatusChange,
   planFilter,
@@ -71,16 +84,40 @@ export function StoresToolbar({
     <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 px-5 py-4">
       {/* Search and Filters */}
       <div className="flex flex-wrap items-center gap-2.5">
-        {/* Search Input */}
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-[10px] border border-admin-line bg-admin-surface w-full sm:w-[280px] md:w-[310px] shadow-2xs">
-          <Search className="w-4 h-4 text-admin-text-soft shrink-0" />
+        {/* Search Input with Debounce Status, Clear, and Submit */}
+        <div className="relative flex items-center gap-2 px-3 py-1.5 rounded-[10px] border border-admin-line bg-admin-surface w-full sm:w-[280px] md:w-[320px] shadow-2xs focus-within:ring-2 focus-within:ring-admin-brand/20 focus-within:border-admin-brand transition-all">
+          {isSearching ? (
+            <Loader2 className="w-4 h-4 text-admin-brand animate-spin shrink-0" />
+          ) : (
+            <Search className="w-4 h-4 text-admin-text-soft shrink-0" />
+          )}
           <input
             type="text"
             value={searchValue}
             onChange={(e) => onSearchChange(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                onSubmitSearch?.();
+              } else if (e.key === "Escape") {
+                e.preventDefault();
+                onClearSearch?.();
+              }
+            }}
             placeholder="Search by store, owner, or domain..."
-            className="w-full bg-transparent border-none outline-none text-[13px] text-admin-text placeholder:text-admin-text-soft"
+            className="w-full bg-transparent border-none outline-none text-[13px] text-admin-text placeholder:text-admin-text-soft pr-1"
           />
+          {searchValue ? (
+            <button
+              type="button"
+              onClick={onClearSearch}
+              title="Clear search (Esc)"
+              aria-label="Clear search"
+              className="p-0.5 text-admin-text-soft hover:text-admin-text hover:bg-admin-bg/80 rounded-full transition-colors cursor-pointer shrink-0"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          ) : null}
         </div>
 
         {/* Status Dropdown */}

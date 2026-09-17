@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useMemo, useCallback } from "react";
-import Link from "next/link";
 import { DataTable } from "@/components/ui/DataTable";
 import { StoresToolbar } from "./StoresToolbar";
 import { StoresPagination } from "./StoresPagination";
@@ -16,10 +15,14 @@ export function StoresManagementTable() {
     stores,
     meta,
     isLoading,
+    isFetching,
+    isSearching,
     refetch,
     query,
     searchInput,
     setSearchInput,
+    handleImmediateSearch,
+    handleClearSearch,
     setStatus,
     setPlan,
     setPage,
@@ -30,7 +33,6 @@ export function StoresManagementTable() {
   const { updateStatus, switchContext } = useStoreActions();
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [trialStore, setTrialStore] = useState<AdminStoreItem | null>(null);
 
   const handleSelectRow = (id: string, selected: boolean) => {
     setSelectedIds((prev) => {
@@ -71,7 +73,7 @@ export function StoresManagementTable() {
   const columns = useMemo(
     () =>
       getStoreColumns({
-        onExtendTrial: (store) => setTrialStore(store),
+        onExtendTrial: () => {},
         onToggleStatus: handleToggleStatus,
         onSwitchContext: (id) => switchContext(id),
       }),
@@ -93,7 +95,7 @@ export function StoresManagementTable() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="items-center">
           <button
             type="button"
             onClick={handleExportCsv}
@@ -101,13 +103,6 @@ export function StoresManagementTable() {
           >
             Export
           </button>
-
-          <Link
-            href="/onboarding"
-            className="px-4 py-2 rounded-full bg-admin-brand text-white hover:bg-admin-brand-dark text-[13px] font-semibold transition-colors shadow-xs"
-          >
-            New store +
-          </Link>
         </div>
       </div>
 
@@ -116,12 +111,15 @@ export function StoresManagementTable() {
         <StoresToolbar
           searchValue={searchInput}
           onSearchChange={setSearchInput}
+          onClearSearch={handleClearSearch}
+          onSubmitSearch={handleImmediateSearch}
+          isSearching={isSearching}
           statusFilter={query.status || "all"}
           onStatusChange={setStatus}
           planFilter={query.plan || "all"}
           onPlanChange={setPlan}
           onRefresh={refetch}
-          isRefreshing={isLoading}
+          isRefreshing={isFetching}
         />
 
         <DataTable
@@ -130,6 +128,27 @@ export function StoresManagementTable() {
           keyExtractor={(row) => row.id}
           isLoading={isLoading}
           loadingRowsCount={query.limit || 6}
+          emptyMessage={
+            query.search ? (
+              <div className="py-8 flex flex-col items-center justify-center text-center">
+                <p className="text-sm font-medium text-admin-text">
+                  No stores found matching &ldquo;{query.search}&rdquo;
+                </p>
+                <p className="text-xs text-admin-text-soft mt-1 max-w-sm">
+                  Try checking for typos or searching with different keywords (store name, owner name, email, or domain).
+                </p>
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  className="mt-3 px-3.5 py-1.5 text-xs font-medium text-admin-brand bg-admin-brand-soft/40 hover:bg-admin-brand-soft rounded-lg transition-colors cursor-pointer"
+                >
+                  Clear search
+                </button>
+              </div>
+            ) : (
+              "No stores found."
+            )
+          }
           enableRowSelection
           selectedRowIds={selectedIds}
           onSelectRow={handleSelectRow}

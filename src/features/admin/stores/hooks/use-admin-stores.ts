@@ -6,9 +6,11 @@ import {
   useTransition,
   useMemo,
   useCallback,
+  useRef,
 } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import { useDebounce } from "@/hooks/use-debounce";
 import { fetchAdminStores } from "../api/stores.api";
 import type { AdminStoresQuery } from "../types/stores.types";
 
@@ -27,13 +29,26 @@ export function useAdminStores() {
   const urlSortOrder =
     (searchParams.get("sortOrder") as "asc" | "desc") || "desc";
 
-  const [prevUrlSearch, setPrevUrlSearch] = useState(urlSearch);
+  // Raw search input directly controlled by the user's keystrokes
   const [searchInput, setSearchInput] = useState(urlSearch);
 
-  if (prevUrlSearch !== urlSearch) {
-    setPrevUrlSearch(urlSearch);
-    setSearchInput(urlSearch);
-  }
+  // 400ms debounce hook with instant flush capability
+  const [debouncedSearch, flushSearch, isDebouncing] = useDebounce(
+    searchInput,
+    400,
+  );
+
+  // Track the search string synced to URL so internal URL updates don't clobber active typing
+  const lastSyncedSearchRef = useRef<string>(urlSearch);
+
+  // Synchronize searchInput when external URL changes (e.g. browser back/forward buttons)
+  useEffect(() => {
+    if (urlSearch !== lastSyncedSearchRef.current) {
+      lastSyncedSearchRef.current = urlSearch;
+      setSearchInput(urlSearch);
+      flushSearch(urlSearch);
+    }
+  }, [urlSearch, flushSearch]);
 
   const updateUrlParams = useCallback(
     (updates: Partial<AdminStoresQuery>) => {
@@ -47,51 +62,86 @@ export function useAdminStores() {
         }
       });
 
+      const newQueryString = params.toString();
+      const targetUrl = newQueryString
+        ? `${pathname}?${newQueryString}`
+        : pathname;
+
       startTransition(() => {
-        router.push(`${pathname}?${params.toString()}`, { scroll: false });
+        router.replace(targetUrl, { scroll: false });
       });
     },
     [searchParams, pathname, router],
   );
 
-  // 300ms debounce on search input
+  // Sync debounced search to URL query parameter with router.replace (prevents history spam)
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (searchInput !== urlSearch) {
-        updateUrlParams({ search: searchInput, page: 1 });
-      }
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [searchInput, urlSearch, updateUrlParams]);
+    const trimmedDebounced = debouncedSearch.trim();
+    const currentUrlTrimmed = (searchParams.get("search") || "").trim();
 
-  const query: AdminStoresQuery = useMemo(
-    () => ({
-      page: urlPage,
+    if (trimmedDebounced !== currentUrlTrimmed) {
+      lastSyncedSearchRef.current = trimmedDebounced;
+      updateUrlParams({ search: trimmedDebounced, page: 1 });
+    }
+  }, [debouncedSearch, searchParams, updateUrlParams]);
+
+  // Submit search immediately (e.g. on Enter key press)
+  const handleImmediateSearch = useCallback(() => {
+    flushSearch(searchInput);
+  }, [flushSearch, searchInput]);
+
+  // Clear search immediately
+  const handleClearSearch = useCallback(() => {
+    setSearchInput("");
+    flushSearch("");
+  }, [flushSearch]);
+
+  const query: AdminStoresQuery = useMemo(() => {
+    const trimmedSearch = debouncedSearch.trim();
+    const currentUrlTrimmed = (searchParams.get("search") || "").trim();
+    // If search term just changed, reset effective page to 1
+    const effectivePage = trimmedSearch !== currentUrlTrimmed ? 1 : urlPage;
+
+    return {
+      page: effectivePage,
       limit: urlLimit,
-      search: urlSearch,
+      search: trimmedSearch,
       status: urlStatus,
       plan: urlPlan,
       sortBy: urlSortBy,
       sortOrder: urlSortOrder,
-    }),
-    [urlPage, urlLimit, urlSearch, urlStatus, urlPlan, urlSortBy, urlSortOrder],
-  );
+    };
+  }, [
+    urlPage,
+    urlLimit,
+    debouncedSearch,
+    urlStatus,
+    urlPlan,
+    urlSortBy,
+    urlSortOrder,
+    searchParams,
+  ]);
 
   const { data, isLoading, isFetching, error, refetch } = useQuery({
     queryKey: ["admin", "stores", query],
     queryFn: () => fetchAdminStores(query),
+    placeholderData: keepPreviousData,
     staleTime: 30000,
   });
 
   return {
     stores: data?.data || [],
     meta: data?.meta,
-    isLoading: isLoading || isFetching,
+    isLoading,
+    isFetching,
+    isSearching: isDebouncing || isFetching,
     error,
     refetch,
     query,
     searchInput,
     setSearchInput,
+    handleImmediateSearch,
+    handleClearSearch,
     setStatus: (status: string) => updateUrlParams({ status, page: 1 }),
     setPlan: (plan: string) => updateUrlParams({ plan, page: 1 }),
     setPage: (page: number) => updateUrlParams({ page }),
