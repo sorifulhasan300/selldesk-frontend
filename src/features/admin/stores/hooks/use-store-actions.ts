@@ -5,7 +5,6 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import {
   updateAdminStoreStatus,
-  extendAdminStoreTrial,
   switchAdminStoreContext,
 } from "../api/stores.api";
 import { setClientStoreId } from "@/shared/lib/api/token";
@@ -26,18 +25,6 @@ export function useStoreActions() {
     },
   });
 
-  const extendTrialMutation = useMutation({
-    mutationFn: ({ id, days }: { id: string; days: number }) =>
-      extendAdminStoreTrial(id, days),
-    onSuccess: (_, { days }) => {
-      queryClient.invalidateQueries({ queryKey: ["admin", "stores"] });
-      toast.success(`Trial period extended by ${days} days`);
-    },
-    onError: (err: unknown) => {
-      toast.error((err as Error)?.message || "Failed to extend trial period");
-    },
-  });
-
   const switchContextMutation = useMutation({
     mutationFn: (id: string) => switchAdminStoreContext(id),
     onSuccess: (_data: unknown, storeId: string) => {
@@ -53,8 +40,6 @@ export function useStoreActions() {
   return {
     updateStatus: updateStatusMutation.mutate,
     isUpdatingStatus: updateStatusMutation.isPending,
-    extendTrial: extendTrialMutation.mutate,
-    isExtendingTrial: extendTrialMutation.isPending,
     switchContext: switchContextMutation.mutate,
     isSwitchingContext: switchContextMutation.isPending,
   };

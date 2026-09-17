@@ -76,18 +76,6 @@ export function StoreRowActions({
             <span>Switch Context</span>
           </button>
 
-          <button
-            type="button"
-            onClick={() => {
-              setOpen(false);
-              onExtendTrial(store);
-            }}
-            className="w-full flex items-center gap-2 px-3.5 py-2 text-[13px] text-admin-text hover:bg-admin-bg/60 transition-colors text-left cursor-pointer"
-          >
-            <Clock className="w-3.5 h-3.5 text-admin-text-soft" />
-            <span>Extend Trial</span>
-          </button>
-
           <div className="border-t border-admin-line my-1" />
 
           <button

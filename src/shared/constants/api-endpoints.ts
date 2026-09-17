@@ -159,7 +159,6 @@ export const ADMIN = {
      */
     LIST: "/admin/stores",
     STATUS: (id: string) => `/admin/stores/${id}/status`,
-    EXTEND_TRIAL: (id: string) => `/admin/stores/${id}/extend-trial`,
     SWITCH: (id: string) => `/admin/stores/${id}/switch`,
   },
 } as const;

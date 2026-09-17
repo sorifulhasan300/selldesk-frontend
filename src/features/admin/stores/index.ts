@@ -7,7 +7,6 @@ export * from "./components/StoreAvatar";
 export * from "./components/StoreStatusBadge";
 export * from "./components/StorePlanBadge";
 export * from "./components/StoreRowActions";
-export * from "./components/ExtendTrialModal";
 export * from "./components/StoresToolbar";
 export * from "./components/StoresPagination";
 export * from "./utils/export-csv";

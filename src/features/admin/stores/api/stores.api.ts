@@ -83,10 +83,6 @@ export async function updateAdminStoreStatus(id: string, status: string) {
   return apiClient.patch(API_ENDPOINTS.ADMIN.STORES.STATUS(id), { status });
 }
 
-export async function extendAdminStoreTrial(id: string, days: number = 14) {
-  return apiClient.patch(API_ENDPOINTS.ADMIN.STORES.EXTEND_TRIAL(id), { days });
-}
-
 export async function switchAdminStoreContext(id: string) {
   return apiClient.post(API_ENDPOINTS.ADMIN.STORES.SWITCH(id));
 }

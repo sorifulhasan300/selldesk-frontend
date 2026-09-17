@@ -5,7 +5,6 @@ import Link from "next/link";
 import { DataTable } from "@/components/ui/DataTable";
 import { StoresToolbar } from "./StoresToolbar";
 import { StoresPagination } from "./StoresPagination";
-import { ExtendTrialModal } from "./ExtendTrialModal";
 import { getStoreColumns } from "./store-columns";
 import { useAdminStores } from "../hooks/use-admin-stores";
 import { useStoreActions } from "../hooks/use-store-actions";
@@ -28,8 +27,7 @@ export function StoresManagementTable() {
     toggleSort,
   } = useAdminStores();
 
-  const { updateStatus, extendTrial, isExtendingTrial, switchContext } =
-    useStoreActions();
+  const { updateStatus, switchContext } = useStoreActions();
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [trialStore, setTrialStore] = useState<AdminStoreItem | null>(null);
@@ -148,20 +146,6 @@ export function StoresManagementTable() {
           onPageChange={setPage}
         />
       </div>
-
-      {/* Trial Extension Modal */}
-      <ExtendTrialModal
-        store={trialStore}
-        isOpen={Boolean(trialStore)}
-        onClose={() => setTrialStore(null)}
-        isLoading={isExtendingTrial}
-        onConfirm={(storeId, days) => {
-          extendTrial(
-            { id: storeId, days },
-            { onSuccess: () => setTrialStore(null) },
-          );
-        }}
-      />
     </div>
   );
 }
