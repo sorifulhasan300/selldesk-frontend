@@ -1,67 +1,25 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { Search, Bell, Mail, Menu, Plus } from "lucide-react";
+import React from "react";
+import { Search, Bell, Mail, Menu } from "lucide-react";
 import { useAuthStore } from "@/features/auth/stores/useAuthStore";
-
-export type TimeRange = "week" | "month" | "year";
 
 export interface AdminHeaderProps {
   onToggleMobileSidebar?: () => void;
-  title?: string;
-  subtitle?: string;
-  showActionArea?: boolean;
-  activeRange?: TimeRange;
-  onRangeChange?: (range: TimeRange) => void;
-  onNewStore?: () => void;
   searchValue?: string;
   onSearchChange?: (val: string) => void;
 }
 
 /**
  * SellDesk Admin Header & Topbar (Light)
- * Pixel-perfect match with the SellDesk Admin Light HTML/CSS specification.
+ * Top-level persistent navigation bar for platform search, notifications, and user avatar.
  */
 export function AdminHeader({
   onToggleMobileSidebar,
-  title = "Dashboard Overview",
-  showActionArea = true,
-  activeRange: controlledRange,
-  onRangeChange,
-  onNewStore,
   searchValue,
   onSearchChange,
 }: AdminHeaderProps) {
   const { user } = useAuthStore();
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-
-  const urlTimeframe = searchParams.get("timeframe") as TimeRange | null;
-  const validUrlRange: TimeRange | null =
-    urlTimeframe === "week" ||
-    urlTimeframe === "month" ||
-    urlTimeframe === "year"
-      ? urlTimeframe
-      : null;
-
-  const [internalRange, setInternalRange] = useState<TimeRange>("month");
-  const selectedRange =
-    controlledRange !== undefined
-      ? controlledRange
-      : (validUrlRange ?? internalRange);
-
-  const handleRangeSelect = (range: TimeRange) => {
-    if (onRangeChange) {
-      onRangeChange(range);
-    } else {
-      setInternalRange(range);
-      const params = new URLSearchParams(searchParams.toString());
-      params.set("timeframe", range);
-      router.push(`${pathname}?${params.toString()}`, { scroll: false });
-    }
-  };
 
   // Derive initial letters for user avatar fallback (defaults to RA per spec)
   const initials = user?.name
@@ -134,56 +92,6 @@ export function AdminHeader({
           </div>
         </div>
       </div>
-
-      {/* ---------- ACTION AREA / PAGE HEAD ---------- */}
-      {showActionArea && (
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-5">
-          <div>
-            <h1 className="text-[22px] font-bold text-[#1C1A2E] m-0 mb-1 tracking-tight leading-tight">
-              {title}
-            </h1>
-          </div>
-
-          <div className="flex items-center gap-3.5 flex-wrap">
-            {/* Time Toggle Group */}
-            <div className="flex bg-white border border-[#E9E7F3] rounded-full p-[3px] shadow-2xs">
-              <button
-                type="button"
-                onClick={() => handleRangeSelect("week")}
-                className={`px-4 py-[7px] text-[13px] rounded-full transition-all cursor-pointer ${
-                  selectedRange === "week"
-                    ? "bg-[#7C5CFC] text-white font-semibold shadow-xs"
-                    : "text-[#77738C] hover:text-[#1C1A2E] font-medium"
-                }`}
-              >
-                This week
-              </button>
-              <button
-                type="button"
-                onClick={() => handleRangeSelect("month")}
-                className={`px-4 py-[7px] text-[13px] rounded-full transition-all cursor-pointer ${
-                  selectedRange === "month"
-                    ? "bg-[#7C5CFC] text-white font-semibold shadow-xs"
-                    : "text-[#77738C] hover:text-[#1C1A2E] font-medium"
-                }`}
-              >
-                This month
-              </button>
-              <button
-                type="button"
-                onClick={() => handleRangeSelect("year")}
-                className={`px-4 py-[7px] text-[13px] rounded-full transition-all cursor-pointer ${
-                  selectedRange === "year"
-                    ? "bg-[#7C5CFC] text-white font-semibold shadow-xs"
-                    : "text-[#77738C] hover:text-[#1C1A2E] font-medium"
-                }`}
-              >
-                This year
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </header>
   );
 }

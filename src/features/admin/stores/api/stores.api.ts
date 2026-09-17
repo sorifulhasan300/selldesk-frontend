@@ -1,6 +1,7 @@
 import { apiClient } from "@/shared/lib/api/client";
 import { API_ENDPOINTS } from "@/shared/constants/api-endpoints";
 import type {
+  AdminStoreDetails,
   AdminStoreItem,
   AdminStoresMeta,
   AdminStoresQuery,
@@ -85,4 +86,24 @@ export async function updateAdminStoreStatus(id: string, status: string) {
 
 export async function switchAdminStoreContext(id: string) {
   return apiClient.post(API_ENDPOINTS.ADMIN.STORES.SWITCH(id));
+}
+
+export async function fetchAdminStoreDetails(
+  id: string,
+): Promise<AdminStoreDetails> {
+  const response = await apiClient.get<unknown>(
+    API_ENDPOINTS.ADMIN.STORES.DETAILS(id),
+    { rawResponse: true },
+  );
+  const rawPayload = (response as { data?: unknown })?.data ?? response;
+  if (
+    rawPayload &&
+    typeof rawPayload === "object" &&
+    "data" in rawPayload &&
+    rawPayload.data &&
+    typeof (rawPayload as { data: unknown }).data === "object"
+  ) {
+    return (rawPayload as { data: AdminStoreDetails }).data;
+  }
+  return rawPayload as AdminStoreDetails;
 }

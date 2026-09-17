@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import type { ColumnDef } from "@/components/ui/DataTable";
 import type { AdminStoreItem } from "../types/stores.types";
 import { StoreAvatar } from "./StoreAvatar";
@@ -29,17 +30,20 @@ export function getStoreColumns({
       header: "STORE",
       enableSorting: true,
       cell: ({ row }) => (
-        <div className="flex items-center gap-3">
+        <Link
+          href={`/admin/stores/${row.id}`}
+          className="flex items-center gap-3 group hover:opacity-80 transition-opacity"
+        >
           <StoreAvatar name={row.storeName} />
           <div>
-            <div className="font-semibold text-admin-text leading-tight text-[13.5px]">
+            <div className="font-semibold text-admin-text leading-tight text-[13.5px] group-hover:text-admin-brand transition-colors">
               {row.storeName}
             </div>
             <div className="text-[12px] text-admin-text-soft leading-snug">
               {row.subDomain}
             </div>
           </div>
-        </div>
+        </Link>
       ),
     },
     {

@@ -158,6 +158,7 @@ export const ADMIN = {
      * GET /api/v1/admin/stores
      */
     LIST: "/admin/stores",
+    DETAILS: (id: string) => `/admin/stores/${id}`,
     STATUS: (id: string) => `/admin/stores/${id}/status`,
     SWITCH: (id: string) => `/admin/stores/${id}/switch`,
   },
