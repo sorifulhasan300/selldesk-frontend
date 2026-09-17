@@ -2,24 +2,35 @@
 
 import React from "react";
 import { Receipt, CheckCircle2, Clock, Banknote } from "lucide-react";
-import type { SubscriptionPaymentItem } from "../types/payment.types";
+import type {
+  SubscriptionPaymentItem,
+  SubscriptionPaymentsStats,
+} from "../types/payment.types";
 import { formatBdtCurrency } from "@/features/admin/analytics/utils/formatters";
 
 export interface PaymentsKpiCardsProps {
-  payments: SubscriptionPaymentItem[];
+  stats?: SubscriptionPaymentsStats;
+  payments?: SubscriptionPaymentItem[];
   isLoading?: boolean;
 }
 
 export function PaymentsKpiCards({
+  stats,
   payments,
   isLoading,
 }: PaymentsKpiCardsProps) {
-  const totalCount = payments.length;
-  const pendingCount = payments.filter((p) => p.status === "PENDING").length;
-  const approvedCount = payments.filter((p) => p.status === "APPROVED").length;
-  const totalApprovedVolume = payments
-    .filter((p) => p.status === "APPROVED")
-    .reduce((sum, p) => sum + (p.amount || 0), 0);
+  const totalCount = stats ? stats.totalTransactions : (payments?.length ?? 0);
+  const pendingCount = stats
+    ? stats.pendingApprovals
+    : (payments?.filter((p) => p.status === "PENDING").length ?? 0);
+  const approvedCount = stats
+    ? stats.approvedPayments
+    : (payments?.filter((p) => p.status === "APPROVED").length ?? 0);
+  const totalApprovedVolume = stats
+    ? stats.approvedVolume
+    : (payments
+        ?.filter((p) => p.status === "APPROVED")
+        .reduce((sum, p) => sum + (p.amount || 0), 0) ?? 0);
 
   const cards = [
     {

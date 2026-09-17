@@ -13,10 +13,15 @@ import type { SubscriptionPaymentItem } from "../types/payment.types";
 export function PaymentsManagementView() {
   const {
     payments,
-    allPayments,
+    meta,
+    stats,
     isLoading,
     isFetching,
     refetch,
+    page,
+    setPage,
+    limit,
+    setLimit,
     searchInput,
     setSearchInput,
     isDebouncing,
@@ -35,7 +40,9 @@ export function PaymentsManagementView() {
   const [detailsPayment, setDetailsPayment] =
     useState<SubscriptionPaymentItem | null>(null);
 
-  const pendingCount = allPayments.filter((p) => p.status === "PENDING").length;
+  const pendingCount =
+    stats?.pendingApprovals ??
+    payments.filter((p) => p.status === "PENDING").length;
 
   const handleOpenReview = useCallback((payment: SubscriptionPaymentItem) => {
     setReviewPayment(payment);
@@ -69,7 +76,11 @@ export function PaymentsManagementView() {
       </div>
 
       {/* KPI Cards */}
-      <PaymentsKpiCards payments={allPayments} isLoading={isLoading} />
+      <PaymentsKpiCards
+        stats={stats}
+        payments={payments}
+        isLoading={isLoading}
+      />
 
       {/* Toolbar */}
       <PaymentsToolbar
@@ -88,12 +99,17 @@ export function PaymentsManagementView() {
       {/* Table */}
       <PaymentsTable
         payments={payments}
+        meta={meta}
         isLoading={isLoading}
         sortBy={sortBy}
         sortOrder={sortOrder}
         onSortChange={toggleSort}
         onReviewPayment={handleOpenReview}
         onViewDetails={handleOpenDetails}
+        page={page}
+        setPage={setPage}
+        limit={limit}
+        setLimit={setLimit}
       />
 
       {/* Approve / Reject Modal */}

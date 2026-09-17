@@ -62,8 +62,9 @@ export function getPaymentColumns({
       ),
     },
     {
-      id: "method",
+      id: "paymentMethod",
       header: "METHOD & TRX ID",
+      enableSorting: true,
       cell: ({ row }) => (
         <div className="space-y-1">
           <PaymentMethodBadge method={row.paymentMethod} />

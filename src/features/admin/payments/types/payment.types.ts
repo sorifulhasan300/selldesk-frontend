@@ -51,3 +51,34 @@ export interface ApprovePaymentDTO {
   status: SubscriptionPaymentStatus;
   note?: string;
 }
+
+export interface SubscriptionPaymentsQuery {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: PaymentStatusFilter;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+}
+
+export interface SubscriptionPaymentsMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}
+
+export interface SubscriptionPaymentsStats {
+  totalTransactions: number;
+  pendingApprovals: number;
+  approvedPayments: number;
+  approvedVolume: number;
+}
+
+export interface SubscriptionPaymentsResponse {
+  data: SubscriptionPaymentItem[];
+  meta: SubscriptionPaymentsMeta;
+  stats?: SubscriptionPaymentsStats;
+}

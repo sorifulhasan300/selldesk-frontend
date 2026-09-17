@@ -1,5 +1,6 @@
 export { PaymentsManagementView } from "./components/PaymentsManagementView";
 export { PaymentsTable } from "./components/PaymentsTable";
+export { PaymentsPagination } from "./components/PaymentsPagination";
 export { PaymentsToolbar } from "./components/PaymentsToolbar";
 export { PaymentsKpiCards } from "./components/PaymentsKpiCards";
 export { ApprovePaymentModal } from "./components/ApprovePaymentModal";

@@ -33,8 +33,6 @@ export const MAIN_MENU_ITEMS: NavItemConfig[] = [
     icon: CreditCard,
   },
   { label: "Payments", href: "/admin/payments", icon: Receipt },
-  { label: "Support Tickets", href: "/admin/support", icon: Headphones },
-  { label: "Reports", href: "/admin/reports", icon: BarChart3 },
 ];
 
 export const SYSTEM_MENU_ITEMS: NavItemConfig[] = [
@@ -129,22 +127,6 @@ export function AdminSidebar({
 
       {/* Spacer pushes bottom card to footer */}
       <div className="flex-1" />
-
-      {/* Bottom Side Card: Platform update */}
-      <div className="bg-[#F0ECFF] rounded-[14px] p-4 mt-auto">
-        <div className="text-[13.5px] font-semibold text-[#1C1A2E] mb-1">
-          Platform update
-        </div>
-        <div className="text-[12px] text-[#77738C] leading-[1.6] mb-3">
-          A new payment gateway has been added — let store owners know.
-        </div>
-        <button
-          type="button"
-          className="w-full bg-[#7C5CFC] hover:bg-[#5C3FE0] text-white border-none rounded-full py-[9px] text-[13px] font-semibold transition-colors cursor-pointer shadow-xs"
-        >
-          View details
-        </button>
-      </div>
     </aside>
   );
 

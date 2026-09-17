@@ -185,10 +185,46 @@ export const ADMIN = {
      * List subscription payments
      * GET /api/v1/admin/subscriptions/payments
      */
-    PAYMENTS: (status?: string) =>
-      status
-        ? `/admin/subscriptions/payments?status=${status}`
-        : "/admin/subscriptions/payments",
+    PAYMENTS: (
+      query?:
+        | string
+        | {
+            page?: number;
+            limit?: number;
+            search?: string;
+            status?: string;
+            sortBy?: string;
+            sortOrder?: "asc" | "desc";
+            [key: string]: unknown;
+          },
+    ) => {
+      if (!query) return "/admin/subscriptions/payments";
+      if (typeof query === "string") {
+        const trimmed = query.trim();
+        if (!trimmed) return "/admin/subscriptions/payments";
+        if (trimmed.startsWith("?"))
+          return `/admin/subscriptions/payments${trimmed}`;
+        if (trimmed.includes("="))
+          return `/admin/subscriptions/payments?${trimmed}`;
+        return `/admin/subscriptions/payments?status=${encodeURIComponent(trimmed)}`;
+      }
+      const params = new URLSearchParams();
+      Object.entries(query).forEach(([key, val]) => {
+        if (
+          val !== undefined &&
+          val !== null &&
+          val !== "" &&
+          val !== "ALL" &&
+          val !== "all"
+        ) {
+          params.set(key, String(val).trim());
+        }
+      });
+      const qs = params.toString();
+      return qs
+        ? `/admin/subscriptions/payments?${qs}`
+        : "/admin/subscriptions/payments";
+    },
     /**
      * Approve or reject a subscription payment
      * PATCH /api/v1/admin/subscriptions/payments/:id/approve
