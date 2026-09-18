@@ -238,6 +238,38 @@ export const ADMIN = {
     EXTEND_TRIAL: (storeId: string) =>
       `/admin/subscriptions/${storeId}/extend-trial`,
   },
+  USERS: {
+    /**
+     * Super Admin Users list with pagination, search, role, sorting
+     * GET /api/v1/admin/users
+     */
+    LIST: "/admin/users",
+    /**
+     * User profile by ID with associated stores
+     * GET /api/v1/admin/users/:id
+     */
+    DETAILS: (id: string) => `/admin/users/${id}`,
+    /**
+     * Create central staff
+     * POST /api/v1/admin/users
+     */
+    CREATE: "/admin/users",
+    /**
+     * Update user role
+     * PATCH /api/v1/admin/users/:id/role
+     */
+    ROLE: (id: string) => `/admin/users/${id}/role`,
+    /**
+     * Update user active/suspended status
+     * PATCH /api/v1/admin/users/:id/status
+     */
+    STATUS: (id: string) => `/admin/users/${id}/status`,
+    /**
+     * Delete user account
+     * DELETE /api/v1/admin/users/:id
+     */
+    DELETE: (id: string) => `/admin/users/${id}`,
+  },
 } as const;
 
 /**

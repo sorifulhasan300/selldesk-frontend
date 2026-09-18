@@ -142,7 +142,9 @@ export function proxy(request: NextRequest) {
   // 5. SUPER_ADMIN / SUPER_STAFF route guards: strictly block onboarding and redirect to /admin
   if (isAuthenticated && isPlatformAdmin) {
     if (isOnboardingRoute || isDashboardRoute) {
-      return NextResponse.redirect(new URL("/admin", request.url));
+      const targetUrl = new URL("/admin", request.url);
+      targetUrl.searchParams.set("denied", "true");
+      return NextResponse.redirect(targetUrl);
     }
   }
 

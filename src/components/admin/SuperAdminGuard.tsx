@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useEffect, useSyncExternalStore } from "react";
+import React, { useEffect, useSyncExternalStore, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { ShieldCheck, ShieldAlert, Lock, ArrowRight } from "lucide-react";
+import { toast } from "sonner";
 import { useAuthStore } from "@/features/auth/stores/useAuthStore";
 import { getAuthSession } from "@/features/auth/services/authSession";
 import {
@@ -144,12 +145,44 @@ export function SuperAdminGuard({
     }
   }
 
-  // Trigger external side-effect (Next.js client-side navigation) without setState in effect
+  const lastToastPathRef = useRef<string | null>(null);
+
+  // Trigger external side-effect (Next.js client-side navigation) with unauthorized access toast
   useEffect(() => {
     if (redirectTarget) {
+      if (
+        authorizationState === "unauthorized" &&
+        pathname &&
+        lastToastPathRef.current !== pathname
+      ) {
+        lastToastPathRef.current = pathname;
+        toast.error("You do not have permission to access this route.", {
+          id: "unauthorized-route-access",
+          description: "Access restricted based on your role permissions.",
+        });
+      }
       router.replace(redirectTarget);
     }
-  }, [redirectTarget, router]);
+  }, [redirectTarget, authorizationState, pathname, router]);
+
+  // Handle server-side proxy redirect with query parameter (?denied=true)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const searchParams = new URLSearchParams(window.location.search);
+    if (searchParams.get("denied") === "true") {
+      toast.error("You do not have permission to access that route.", {
+        id: "proxy-denied-access",
+        description: "Access restricted based on your role permissions.",
+      });
+      const cleanUrl = new URL(window.location.href);
+      cleanUrl.searchParams.delete("denied");
+      window.history.replaceState(
+        {},
+        "",
+        cleanUrl.pathname + (cleanUrl.search ? cleanUrl.search : ""),
+      );
+    }
+  }, [pathname]);
 
   // Render authorized layout tree
   if (authorizationState === "authorized") {
