@@ -270,6 +270,18 @@ export const ADMIN = {
      */
     DELETE: (id: string) => `/admin/users/${id}`,
   },
+  AUDIT_LOGS: {
+    /**
+     * Super Admin Audit Logs list with pagination, search, filters, sorting
+     * GET /api/v1/admin/audit-logs
+     */
+    LIST: "/admin/audit-logs",
+    /**
+     * Single Audit Log detail by ID
+     * GET /api/v1/admin/audit-logs/:id
+     */
+    DETAILS: (id: string) => `/admin/audit-logs/${id}`,
+  },
 } as const;
 
 /**

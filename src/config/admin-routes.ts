@@ -103,6 +103,14 @@ export const ADMIN_ROUTES: readonly AdminRoute[] = [
     description:
       "System configurations, security controls, and integration keys",
   },
+  {
+    title: "Audit Logs",
+    href: "/admin/audit-logs",
+    icon: "ShieldAlert",
+    allowedRoles: ["SUPER_ADMIN", "SUPER_STAFF"],
+    description:
+      "Platform activity tracking, security events, and audit trails",
+  },
 ] as const;
 
 /**

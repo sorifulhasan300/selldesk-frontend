@@ -2,18 +2,9 @@ export * from "./types";
 export * from "./errors";
 export * from "./token";
 export * from "./client";
-export * from "./server-client";
 
 // Primary API client instances
 export { apiClient, axiosInstance, API_BASE_URL } from "./client";
-export {
-  serverApiClient,
-  ServerApiError,
-  isServerApiError,
-  resolveStoreId,
-  resolveTenantId,
-  getServerApiBaseUrl,
-} from "./server-client";
 
 // Core error & token helpers
 export {

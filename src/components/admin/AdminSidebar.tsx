@@ -9,10 +9,9 @@ import {
   Store,
   CreditCard,
   Receipt,
-  Headphones,
-  BarChart3,
   Users,
   Settings,
+  ShieldAlert,
   X,
   type LucideIcon,
 } from "lucide-react";
@@ -37,6 +36,7 @@ export const MAIN_MENU_ITEMS: NavItemConfig[] = [
 
 export const SYSTEM_MENU_ITEMS: NavItemConfig[] = [
   { label: "Team & Permissions", href: "/admin/users", icon: Users },
+  { label: "Audit Logs", href: "/admin/audit-logs", icon: ShieldAlert },
   { label: "Settings", href: "/admin/settings", icon: Settings },
 ];
 
@@ -45,10 +45,6 @@ export interface AdminSidebarProps {
   onCloseMobile?: () => void;
 }
 
-/**
- * SellDesk Admin Sidebar (Light)
- * Pixel-perfect match with the SellDesk Admin Light HTML/CSS specification.
- */
 export function AdminSidebar({
   mobileOpen = false,
   onCloseMobile,
@@ -56,9 +52,7 @@ export function AdminSidebar({
   const pathname = usePathname();
 
   const isItemActive = (item: NavItemConfig) => {
-    if (item.exact) {
-      return pathname === item.href;
-    }
+    if (item.exact) return pathname === item.href;
     return pathname === item.href || pathname.startsWith(`${item.href}/`);
   };
 
@@ -67,12 +61,11 @@ export function AdminSidebar({
       {items.map((item) => {
         const active = isItemActive(item);
         const Icon = item.icon;
-
         return (
           <Link
             key={item.href}
             href={item.href}
-            onClick={() => onCloseMobile && onCloseMobile()}
+            onClick={() => onCloseMobile?.()}
             className={`flex items-center gap-[11px] px-3 py-2.5 rounded-[10px] text-[14px] transition-all no-underline ${
               active
                 ? "bg-[#7C5CFC] text-white font-semibold shadow-xs"
@@ -96,11 +89,8 @@ export function AdminSidebar({
       className="bg-[#FFFFFF] border-r border-[#E9E7F3] px-4 pt-[22px] pb-4 flex flex-col h-screen sticky top-0 w-[250px] shrink-0 select-none overflow-y-auto"
       style={{ minHeight: "100vh" }}
     >
-      {/* Brand Header */}
       <div className="flex items-center justify-between pb-[26px] px-2">
         <Logo href="/admin" size="md" priority onClick={onCloseMobile} />
-
-        {/* Mobile Close Button */}
         {onCloseMobile && (
           <button
             type="button"
@@ -113,31 +103,25 @@ export function AdminSidebar({
         )}
       </div>
 
-      {/* Category: Main Menu */}
       <div className="text-[11.5px] uppercase tracking-[0.03em] text-[#77738C] px-3 pt-1.5 pb-2 font-normal">
         Main Menu
       </div>
       {renderNavGroup(MAIN_MENU_ITEMS)}
 
-      {/* Category: System */}
       <div className="text-[11.5px] uppercase tracking-[0.03em] text-[#77738C] px-3 pt-1.5 pb-2 font-normal">
         System
       </div>
       {renderNavGroup(SYSTEM_MENU_ITEMS)}
 
-      {/* Spacer pushes bottom card to footer */}
       <div className="flex-1" />
     </aside>
   );
 
   return (
     <>
-      {/* Desktop Persistent Sidebar */}
       <div className="hidden md:block w-[250px] shrink-0 sticky top-0 h-screen">
         {sidebarContent}
       </div>
-
-      {/* Mobile Modal Drawer with Backdrop */}
       {mobileOpen && (
         <div className="fixed inset-0 z-50 flex md:hidden">
           <div
